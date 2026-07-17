@@ -102,6 +102,13 @@ infra.py                                                  (Base, engine, session
 own album. Recency, fit, and staleness are all **release-level**; the specific
 instance matters only when a play is logged.
 
+**Identity comes straight from Discogs** — no internal surrogate keys. FR-2a
+already matches on Discogs identity, so a second id would be redundant for a
+permanent dependency. Each entity's own key is `id`; a reference to another
+entity keeps a pointing name (`Play.release_id`, `Candidate.release_id`). An
+`Instance` is always reached through its `Release` aggregate, so it holds no
+`release_id` in the dataclass — that FK lives only in the private ORM model.
+
 ### 5.1 `records`
 
 ```python
@@ -110,21 +117,20 @@ class RetirementStatus(Enum):
 
 @dataclass(frozen=True)
 class Instance:
-    instance_id: InstanceId
-    release_id: ReleaseId
+    id: InstanceId                    # Discogs collection item id
     is_playable: bool                 # FR-13
     retirement_status: RetirementStatus
     description: str | None = None    # tells copies apart; only when >1 owned
 
 @dataclass(frozen=True)
 class Release:                        # the album, across pressings
-    release_id: ReleaseId
+    id: ReleaseId                     # Discogs master id (namespaced), or release id when no master
     artist: str
     title: str
     styles: list[str]                 # drive mood fit
     cover_url: str | None             # for display (FR-6)
     year: int | None
-    instances: list[Instance]         # aggregate root; Instance refers back by id
+    instances: list[Instance]         # aggregate root; the parent is always known when you hold an Instance
 ```
 
 ```python
@@ -133,7 +139,7 @@ def browse(db) -> list[Release]            # every owned album, artist→title o
 def search(db, text) -> list[Release]      # albums matching artist or title, case-insensitive
 def get(db, release_id) -> Release | None
 def recommendable(db) -> list[Release]     # albums with >=1 playable, non-retired instance
-def pending_retirements(db) -> list[Instance]   # flagged by sync, awaiting confirmation (FR-2a)
+def pending_retirements(db) -> list[Release]    # albums narrowed to their PENDING instances (FR-2a)
 def styles(db) -> set[str]                 # distinct styles present; view diffs vs moods for FR-18
 
 # Writes
@@ -264,7 +270,7 @@ The flow inside `generate`:
 
 1. `affinity = moods.affinity(db, session.mood)`; map to `picker.Affinity`.
 2. `pool = records.recommendable(db)`; `recency = sessions.latest_plays(db)`.
-3. `candidates = [picker.Candidate(r.release_id, r.styles, now - recency.get(r.release_id, ...)) for r in pool]`.
+3. `candidates = [picker.Candidate(r.id, r.styles, now - recency.get(r.id, ...)) for r in pool]`.
 4. `fit = picker.matching(candidates, affinity)` — also the FR-10 "does anything fit?" pool.
 5. exclude release ids where `now - last_play <= window` (FR-4), plus this
    session's played releases (`sessions.plays`) and shown releases (own
@@ -333,9 +339,13 @@ resolve against the single `Base` metadata in `infra`, so a DB-level reference
 never becomes a code dependency.
 
 - **`records`** — a `release` row per album (Discogs master id as identity,
-  artist/title/year/styles/cover_path) and an `instance` row per owned pressing
-  (release FK, Discogs item id, `is_playable`, `retirement_status`). `styles` is
-  a JSON list, not a join table — the affinity map is keyed by style string.
+  **namespaced** so a master id and a release id can't alias — e.g. `"m12345"` /
+  `"r12345"` for the no-master fallback; plus artist/title/year/styles/cover_path)
+  and an `instance` row per owned pressing (Discogs item id, release FK,
+  `is_playable`, `retirement_status`). The `instance.release_id` FK is the one
+  place that reference exists — it assembles the aggregate and is never exposed
+  on the dataclass. `styles` is a JSON list, not a join table — the affinity map
+  is keyed by style string.
 - **`moods`** — persisted *overrides* only: a description row per edited mood and
   the affinity map (one JSON document). Mood identity and windows are code, not
   rows; unmapped styles (FR-18) are derived, not stored.
