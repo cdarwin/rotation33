@@ -71,6 +71,63 @@ Small id aliases (`ReleaseId = str`, `InstanceId = str`) are defined locally in
 each module that wants them — a bare `str` alias carries no coupling, and it
 keeps `picker` importing nothing.
 
+### Database access: the private mapper
+
+Every component encapsulates all database access in a private, session-bound
+`_Mapper`: it holds the queries and the row↔domain transforms and is the only
+code in the module that touches a table. Public functions stay thin — they carry
+validation and business rules, then delegate persistence to the mapper. So the
+blast radius of an infra change is one private class per component, and the rules
+never move.
+
+```python
+# records.py (abridged — full dataclasses in §5.1)
+
+class _ReleaseRow(Base): ...        # private ORM rows; never leave the module
+class _InstanceRow(Base): ...
+
+class _Mapper:                      # the ONLY code that touches the tables
+    def __init__(self, db: Session):
+        self._db = db
+
+    @classmethod                    # row -> domain
+    def _release(cls, r: _ReleaseRow) -> Release:
+        return Release(r.id, r.artist, r.title, list(r.styles),
+                       _served_url(r.cover_path), r.year,
+                       [cls._instance(i) for i in r.instances])
+
+    def recommendable(self) -> list[Release]:      # query -> domain
+        stmt = (select(_ReleaseRow).join(_InstanceRow)
+                .where(_InstanceRow.is_playable,
+                       _InstanceRow.retirement_status != RetirementStatus.RETIRED)
+                .distinct())
+        return [self._release(r) for r in self._db.scalars(stmt)]
+
+    def upsert(self, release: Release) -> None:    # domain -> rows
+        row = self._db.get(_ReleaseRow, release.id) or _ReleaseRow(id=release.id)
+        row.artist, row.title, row.year, row.styles = (
+            release.artist, release.title, release.year, list(release.styles))
+        for inst in release.instances:             # metadata only — never writes
+            irow = self._db.get(_InstanceRow, inst.id) or _InstanceRow(
+                id=inst.id, release_id=release.id) # is_playable / retirement_status
+            irow.description = inst.description     # on existing rows (FR-2)
+            self._db.add(irow)
+        self._db.add(row)
+
+# public surface: validate / enforce rules, then delegate
+def recommendable(db: Session) -> list[Release]:
+    return _Mapper(db).recommendable()
+
+def set_playable(db: Session, instance_id: InstanceId, playable: bool) -> None:
+    m = _Mapper(db)
+    if m.get_instance(instance_id) is None:        # rule/validation lives here …
+        raise UnknownInstance(instance_id)
+    m.set_playable(instance_id, playable)          # … persistence lives in the mapper
+```
+
+The mapper stays a faithful translator with no judgment; every guard is readable
+in the public surface without wading through SQL.
+
 ## 4. Module map
 
 An acyclic dependency set. Arrows point from dependent to dependency.
