@@ -15,6 +15,9 @@ and asking for recommendations conversationally) with a persistent, always
 available tool on the home network that remembers what's been played and
 adapts over time.
 
+Only vinyl is in scope: any CDs, cassettes, or other formats in the Discogs
+collection are ignored.
+
 ## 2. Goals
 
 - Recommend records that fit a chosen listening mood, without repeating
@@ -85,17 +88,22 @@ collection, for example because it was sold, confirmed by the user after a sync
 flags it. A Retired Instance is excluded from Recommendations but keeps its Play
 history, and it un-retires if it reappears on a later sync.
 
+Because a Release corresponds to a Discogs master release, a change to Discogs
+master grouping (for example a release that later gains a master it previously
+lacked) can re-key an album on a subsequent sync and may split or merge its
+recency history. This is rare and accepted for the MVP.
+
 ### Moods
 
 A **Mood** is one of a small fixed set of listening moods, and it is the starting
 point for a Session. Each Mood carries a soft time-of-day default.
 
 A **Mood Description** is an editable description of a Mood that informs its
-Recommendations, and it ships with a seeded default.
+Recommendations, and it has a built-in default.
 
 A **Style Affinity** maps a Discogs style tag, such as Bossa Nova or Prog Rock,
-to the Mood or Moods it suits. Style Affinities ship pre-seeded and remain
-editable.
+to the Mood or Moods it suits. Style Affinities ship with built-in defaults and
+remain editable.
 
 The five moods are First Light, Heads Down, Peak, Golden Hour, and After Dark.
 After Dark is an optional wind-down, the mood most likely to go unused on a given
@@ -135,7 +143,7 @@ singer-songwriter, whatever does not belong in daylight. It is the optional one;
 some days it is never picked, and that is fine. Patti Smith, The Smiths, Lovage,
 Pink Floyd, and after-hours Art Blakey fit here.
 
-The seeded Style Affinities map common Discogs styles onto these moods, and a
+The built-in Style Affinities map common Discogs styles onto these moods, and a
 style may suit more than one. First Light and Golden Hour share the collection's
 mellow core, with folk, country, singer-songwriter, and soft or yacht rock suiting
 both, while warm soul and mellow pop lean toward First Light and nostalgic classic
@@ -153,12 +161,14 @@ flagged for review (FR-18).
 
 A **Session** is a single listening sitting: a chosen Mood, the records generated
 for it, and the records logged as played into it. A Session stays open until a
-new one starts, and it rolls over at the end of the day.
+new one starts.
 
-A **Recommendation** is the set of three to five records, each a specific
-Instance, generated for a Session's Mood. It is the shelf starting point that the
-user narrows down from. Because recency avoidance works at the Release level, no
-album recurs through a different pressing.
+A **Recommendation** is a set of records generated for a Session's Mood, aiming
+for three to five but showing fewer when the pool is thin rather than padding.
+Each recommended record is a Release; the specific Instance is chosen when a play
+is logged. It is the shelf starting point that the user narrows down from.
+Because recency avoidance works at the Release level, no album recurs through a
+different pressing.
 
 A **Play** is a specific Instance logged as played, added to the current Session
 on a given date.
@@ -167,8 +177,8 @@ on a given date.
 
 ### 8.1 Collection sync
 - **FR-1:** User can trigger a manual sync pulling current collection data
-  (artist, title, format, year, Discogs style tags, notes, cover artwork) from
-  Discogs.
+  (artist, title, format, year, Discogs style tags, cover artwork) from Discogs.
+  Only vinyl instances are imported; other formats (CDs, cassettes) are ignored.
 - **FR-2:** Sync is one-way and never alters local behavioral data: play
   history, condition flags, and session history are untouched by a sync.
 - **FR-2a:** When a sync finds an instance that previously existed but is no
@@ -187,9 +197,12 @@ on a given date.
   user can override it with a single tap.
 - **FR-4:** A session generates 3-5 recommended records for the chosen mood,
   chosen for fit against the mood and for not having been played (any pressing
-  of the same release) within a configurable recency window (default 3 days).
-- **FR-5:** Recommendations exclude any record already played today or already
-  logged into the active session.
+  of the same release) within a configurable recency window (default 3 days). A
+  thin pool may yield fewer than three; the set shows what qualifies rather than
+  padding, and only a genuinely empty set triggers FR-10.
+- **FR-5:** Recommendations exclude any record already logged into the active
+  session. Recency-based exclusion is covered by FR-4; there is no separate
+  same-day rule.
 - **FR-6:** Each recommendation shows the record's cover artwork, so a
   suggestion on screen maps directly to a spine on the shelf.
 - **FR-7:** Selection favors records that haven't played in the longest time,
@@ -199,9 +212,9 @@ on a given date.
 
 ### 8.3 Generate another set
 - **FR-9:** User can request another set of picks for the current mood if
-  unsatisfied. A new set never repeats a record already played today, already
-  logged into the active session, or already shown and passed over earlier in
-  this session.
+  unsatisfied. A new set never repeats a record played within the recency
+  window, already logged into the active session, or already shown and passed
+  over earlier in this session.
 - **FR-10:** When no records satisfy the constraints, the session says so, and
   ideally why (e.g. everything fitting this mood has played recently), rather
   than showing an empty or padded set.
@@ -219,8 +232,8 @@ on a given date.
   logged. Where a release has more than one owned instance, the user picks which
   instance played.
 - **FR-12b:** The user can remove a play logged into the current session (e.g.
-  wrong instance, mis-tap). Removal deletes the play outright; there is no edit —
-  to fix a wrong entry, remove it and log the correct one. Removing a play
+  wrong instance, mis-tap). Removal deletes the play outright; there is no edit.
+  To fix a wrong entry, remove it and log the correct one. Removing a play
   immediately restores that release's eligibility for recommendations, since
   recency is derived from the remaining play history. Only plays in the active
   session are removable; earlier history is not editable in the MVP.
@@ -230,27 +243,28 @@ on a given date.
   (e.g. damaged, warped). Such instances are excluded from all
   recommendations until manually cleared.
 - **FR-13a:** A not-playable instance is excluded from recommendations (FR-13)
-  but can still be logged as an off-recommendation play — the flag suppresses
+  but can still be logged as an off-recommendation play; the flag suppresses
   suggestions, it does not forbid logging a play the user actually performed.
 
 ### 8.6 Settings
 - **FR-14:** User can adjust the recency window.
-- **FR-15:** User can edit each mood's description, which starts from a seeded default.
-- **FR-16:** User can edit the style-to-mood affinity mapping, which ships pre-seeded (see FR-17).
+- **FR-15:** User can edit each mood's description, which starts from a built-in default.
+- **FR-16:** User can edit the style-to-mood affinity mapping, which ships with built-in defaults (see FR-17).
 
-### 8.7 Seeding and first run
-- **FR-17:** The app ships with seeded defaults: a style-to-mood affinity map
+### 8.7 Defaults and first run
+- **FR-17:** The app ships with built-in defaults: a style-to-mood affinity map
   covering common Discogs styles, and starter descriptions for the five moods.
-  Both are editable (FR-15, FR-16), so the app produces sensible
-  recommendations immediately after the first sync with no manual setup.
+  Editing either (FR-15, FR-16) persists an override of the built-in default, so
+  the app produces sensible recommendations immediately after the first sync
+  with no manual setup or separate seeding step.
 - **FR-18:** Styles absent from the affinity map are treated as eligible for
   all moods and flagged for review; a record is never silently excluded from
   recommendations because one of its styles is unmapped. Styles newly
   introduced by a sync are handled the same way, whether on the first sync or a
   later one.
 - **FR-19:** On first use, an empty collection prompts the user to run a sync.
-  There is no separate onboarding wizard: once synced, the seeded defaults and
-  the FR-18 flag cover setup.
+  There is no separate onboarding wizard: once synced, the built-in defaults and
+  the FR-18 handling cover setup.
 
 ## 9. User flows
 
@@ -291,7 +305,7 @@ repeat
   (instance, date);
 repeat while (Play another this session?) is (yes)
 :Session stays open until the
-next one starts / end of day;
+next one starts;
 stop
 @enduml
 ```
@@ -307,17 +321,16 @@ note right
   collection prompts this
 end note
 :Fetch collection from Discogs;
+:Keep vinyl instances only
+(ignore CDs, cassettes);
 :Upsert metadata per instance
-(artist, title, styles, notes,
+(artist, title, styles,
 cover artwork);
 note right
   Play history, condition flags, and
   session history are never
   modified by a sync
 end note
-:Flag styles not yet in the
-affinity map for review
-(eligible for all moods meanwhile);
 switch (Any owned instances gone from the Discogs collection?)
 case (yes)
   :Flag them as pending retirement
