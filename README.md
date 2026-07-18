@@ -26,9 +26,10 @@ device is handy. That can be one of the suggestions or anything else you grab
 off the shelf. Those plays are what the recommendations learn from.
 
 The app pulls your collection from Discogs when you ask it to: artist, title,
-styles, notes, and cover art. Sync only ever reads from Discogs, never writes
-back. You can also flag a copy as damaged or mark one as sold, and it'll drop
-out of future suggestions.
+styles, and cover art. Only vinyl is pulled in; CDs and cassettes in your
+collection are ignored. Sync only ever reads from Discogs, never writes back.
+You can also flag a copy as damaged or mark one as sold, and it'll drop out of
+future suggestions.
 
 ## How a session works
 
@@ -38,7 +39,7 @@ so it's easy to match the suggestion on screen to the spine on the shelf. If the
 set doesn't grab you, ask for another one.
 
 As you play records, you log them into the session. A session stays open until
-you start the next one, or until the day rolls over.
+you start the next one.
 
 Under the hood, recommendations come down to two things: how well a record's
 Discogs styles match the mood you picked, and how long it's been since you last
@@ -75,10 +76,13 @@ there's something to deploy.
 
 - [Product requirements](docs/prd/mvp.md) covers the scope, the moods, and the
   full set of requirements and user flows.
+- [Technical architecture](docs/rfc/technical-architecture.md) covers the
+  component design, storage, sync, and deployment.
 - [Recommendation engine design](docs/rfc/recommendation-engine-design.md)
   covers how suggestions are actually generated.
 
 ## Status
 
-Still in the design phase. The requirements and the engine design are settled,
-but the code hasn't been written yet.
+Still in the design phase. The product requirements, the recommendation engine
+design, and the technical architecture are drafted and pending review; no code
+yet.

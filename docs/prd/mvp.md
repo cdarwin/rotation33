@@ -4,7 +4,8 @@
 
 **Status:** Draft (MVP scope)
 
-**Related documents:** [`recommendation-engine-design.md`](/docs/rfc/recommendation-engine-design.md)
+**Related documents:** [`recommendation-engine-design.md`](/docs/rfc/recommendation-engine-design.md),
+[`technical-architecture.md`](/docs/rfc/technical-architecture.md)
 
 ## 1. Overview
 
@@ -154,7 +155,7 @@ punk and hardcore, hip hop, house, and uptempo Americana such as bluegrass and
 outlaw country. After Dark takes the moodier styles: post-punk and indie rock, new
 wave and synth-pop, late-night jazz, and darker art rock. A record that fits
 several styles is judged on its best-fitting style for the chosen Mood (FR-8), and
-any style not present in this seed map is treated as eligible for all Moods and
+any style not present in this default map is treated as eligible for all Moods and
 flagged for review (FR-18).
 
 ### Sessions
