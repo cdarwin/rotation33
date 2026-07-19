@@ -28,8 +28,9 @@ Section 8 lists the points where this design revises the PRD and the engine RFC.
 | ORM | SQLAlchemy | Relations map cleanly; a hairy read can drop to raw SQL. |
 | Discogs | python3-discogs-client | Handles auth, pagination, and rate-limit backoff. |
 | Background work | In-process `threading.Thread`, single WSGI worker | One sync at a time. No Celery/Redis. Requires a single worker process (Section 14) and a run guard (Section 9). |
-| Time | Configurable timezone | `TZ` env var; `infra.now()` feeds recency and mood pre-select. No calendar-day boundary (Section 6). |
-| Migrations | `create_all()` now, Alembic before first real data | No migration overhead while the schema churns; adopt versioning once there is history worth protecting. |
+| Time | Configurable timezone | `TZ` env var; `infra.now()` feeds recency and mood pre-select. Returns naive local time in the configured zone, so no comparison mixes aware and naive datetimes. No calendar-day boundary (Section 6). |
+| Migrations | Alembic from the first table | Play history cannot be regenerated: a collection re-syncs from Discogs, plays do not. The first sync is real data, so there is no window in which `create_all()` alone is safe. |
+| Styling | One hand-written stylesheet, mobile-first | No framework and no build step. CSS custom properties for the palette, flexbox and grid for layout. NFR-3 is a per-screen obligation, not a pass at the end. |
 | Cover art | On disk, path plus source URL in DB | Cached to the data volume during sync; served as static files. Source URL stored for change detection. Required by NFR-4. |
 | Deployment | Dockerfile + docker-compose.yml | Compose wires the app to a named volume and env config. |
 
@@ -56,9 +57,14 @@ returns ids and lets the view join to `records`, because it cannot depend on
 `records`. The `recommendations` facade returns fully rendered records, because
 it already depends on `records`.
 
-The view layer (`app.py`) owns the request-scoped database session, holds only
-dataclasses, and hands off to a facade rather than accreting orchestration
-logic. `db` in the signatures below is that session. Functions that touch no
+The view layer (`app.py`) owns the request-scoped database session and holds only
+dataclasses. The rule it follows is that a view may join across components for
+display, but may not implement a rule. Assembling the session log from
+`sessions.plays` and `records`, or diffing `records.styles` against
+`moods.affinity_map` for the FR-18 review list, is display composition and
+belongs in the view. Anything that decides something, such as which releases are
+eligible or why a result is empty, belongs in a facade. `db` in the signatures
+below is that session. Functions that touch no
 storage (for example `moods.for_time`) take no `db`, and the pure engine
 (`picker`) takes neither `db` nor a clock.
 
@@ -343,10 +349,14 @@ The flow inside `generate`:
 
 1. `affinity = moods.affinity(db, session.mood)`, mapped to `picker.Affinity`.
 2. `pool = records.recommendable(db)`; `recency = sessions.latest_plays(db)`.
-3. `candidates = [picker.Candidate(r.id, r.styles, now - recency.get(r.id, datetime.min)) for r in pool]`;
-   `datetime.min` on a never-played release yields a staleness far larger than
-   any real gap, guaranteeing it ranks first without needing to equal
-   `timedelta.max` exactly.
+3. `candidates = [picker.Candidate(r.id, r.styles, staleness) for r in pool]`,
+   where `staleness` is `now - recency[r.id]` for a release that has plays and
+   the sentinel `timedelta.max` for one that has none, so a never-played release
+   ranks first. The branch is deliberate. `timedelta.max` is only ever sorted on
+   and never added to a datetime, so it is safe; deriving the same effect by
+   subtracting a sentinel *date* is not, because it would raise on the
+   never-played path alone if `infra.now()` ever returned an aware datetime
+   (Section 2 pins it naive for this reason).
 4. `fit = picker.matching(candidates, affinity)`, which is also the FR-10 "does anything fit" pool.
 5. exclude release ids where `now - last_play <= window(db)` (FR-4), plus this
    session's played releases (`sessions.plays`) and shown releases (own
@@ -370,8 +380,7 @@ the one place a persisted pick can silently vanish, and it is intended.
 class Candidate:
     release_id: ReleaseId
     styles: Sequence[str]
-    staleness: timedelta             # now - last_played; a never-played release gets a value
-                                      # far larger than any real gap, so it ranks first
+    staleness: timedelta             # now - last_played; timedelta.max = never played (ranks first)
 
 @dataclass(frozen=True)
 class Affinity:                      # picker's own fit input, self-contained at the swap boundary
@@ -427,8 +436,13 @@ interfaces imply. Cross-component foreign keys are string-named
   not on the dataclass. `styles` is a JSON list, not a join table. `cover_path` is
   the local file (the dataclass `cover_url` derives from it); `cover_source_url`
   is the Discogs origin, kept so sync can detect a changed image, not just a
-  missing one (Section 9). The ORM may also stash the pressing `release_id` per
-  instance for a "view on Discogs" link.
+  missing one (Section 9). The instance row also carries the Discogs pressing
+  `release_id`. This is required, not optional: it powers a "view on Discogs"
+  link, but its real job is to be the durable handle for the identity-drift risk
+  in Section 8. If a master reassignment re-keys an album and splits its recency
+  history, the pressing id is the only surviving evidence of which instances used
+  to belong together. It is one integer, free from the listing payload, and it is
+  the sole recovery path for the one accepted data-loss risk in this design.
 - `moods`: persisted overrides only, a description row per edited mood and the
   affinity map as one JSON document. Mood identity and windows are code, not
   rows; unmapped styles (FR-18) are derived, not stored.
@@ -440,12 +454,14 @@ interfaces imply. Cross-component foreign keys are string-named
   recency-window setting (code default 3 days). Batch rows accumulate and are not
   pruned, which is acceptable at single-user scale.
 - `sync`: a single latest `sync_run` row (status, `total`, `processed`,
-  timestamps, error) for progress polling and "last synced."
+  timestamps, error) for progress polling and "last synced." It is metadata about
+  a run, not collection data, which is what lets Section 9 commit it on its own
+  schedule.
 
 Cover art is files under `DATA_DIR/covers`, named by release id, so a retried
-sync overwrites rather than orphaning. `create_all()` runs on startup after `app`
-imports the components so their tables register. Alembic is adopted before the
-first deployment that holds history worth keeping.
+sync overwrites rather than orphaning. Schema is managed by Alembic from the
+first table (Section 2); `alembic upgrade head` runs on startup, and `env.py`
+imports every component so autogenerate sees the full `Base` metadata.
 
 ## 8. Revisions to the PRD and engine RFC
 
@@ -487,13 +503,37 @@ non-blocking `acquire()`; a trigger that fails to acquire it no-ops, so two
 rapid triggers cannot both start (a DB check-then-insert is not enough here,
 since gunicorn's threaded workers, Section 14, can interleave two requests
 between the check and the write). The acquiring thread spawns a
-`threading.Thread` that owns its own `Session` from `SessionLocal` for its
-lifetime (the exception to the view owning the session, since the thread has
-no request context), and releases the lock when the thread finishes. It:
+`threading.Thread`, which releases the lock in a `finally` covering its whole
+body. Releasing only on the success path would strand the lock for the life of
+the process if the thread raised, leaving sync permanently dead with nothing on
+screen to explain it.
+
+The lock guards concurrency within one process, but not state across restarts. A
+process killed mid-sync leaves a `sync_run` at `running` forever, and the
+progress endpoint would poll it indefinitely. The app factory therefore reconciles
+on startup, marking any run still `running` as failed.
+
+The thread owns its sessions rather than the view, since it has no request
+context. It holds two, and the split matters:
+
+- a **data session** from `SessionLocal`, open across the whole fetch and
+  committed once at the end;
+- a **progress session**, opened and committed and closed per page, writing only
+  `sync_run`.
+
+One session cannot do both jobs. Progress written inside the data transaction is
+invisible to the polling request, which reads on another connection, so the bar
+would sit at zero and then jump to complete; committing progress from the data
+session as it goes would break the failure isolation below. Splitting them is
+sound because `sync_run` is metadata about the run, not collection data
+(Section 7), so committing it early leaves nothing partial behind.
+
+The thread:
 
 1. reads the collection total up front (`folder.count`) into `sync_run.total`,
    then walks the full collection page by page (the client library handles
-   pagination and rate-limit backoff), advancing `sync_run.processed` per page;
+   pagination and rate-limit backoff), advancing `sync_run.processed` per page
+   via the progress session;
 2. keeps only vinyl instances, where an instance is kept if any of its formats is
    `"Vinyl"` (`basic_information.formats[].name`), dropping CDs and cassettes;
 3. groups kept instances into albums by `master_id` (present in
@@ -503,13 +543,14 @@ no request context), and releases the lock when the thread finishes. It:
 4. downloads cover art to `DATA_DIR/covers` when the file is missing or its
    `cover_source_url` changed (both cheap; the image URL is in the listing);
 5. calls `records.reconcile_retirements` once with every currently-present vinyl
-   `instance_id`: absent-locally-present instances become `pending`, reappeared
-   ones flip back to `active` (FR-2a);
-6. updates `sync_run` throughout; the progress bar shows `processed / total`.
+   `instance_id`, inside the data transaction: absent-locally-present instances
+   become `pending`, reappeared ones flip back to `active` (FR-2a);
+6. commits the data session once, then marks `sync_run` complete.
 
 Failure isolation (FR-2, FR-2a): metadata commit and retirement-flagging happen
-only after a complete, successful fetch. A partial or failed fetch marks
-`sync_run` failed and writes no retirements and no half-collection. A single
+only after a complete, successful fetch, in the single data-session commit at
+step 6. A partial or failed fetch rolls that session back and marks `sync_run`
+failed, writing no retirements and no half-collection. A single
 cover-art download failure is logged and skipped (old file kept); it does not
 fail the sync. Cover files are named by release id, so a failed sync's partial
 downloads are overwritten on the next run rather than accumulating. Sync never
@@ -523,9 +564,16 @@ release listing multiple formats such as an LP-plus-CD (the `any(format ==
 ## 10. Web layer and htmx
 
 Routes live in `app.py` (promoting to `app/` with blueprints if it strains). The
-view opens a request-scoped session, commits and closes on teardown, and passes
-only dataclasses to templates. The UI is responsive across phone, tablet, and
-desktop (NFR-3), which is a constraint on the templates and CSS.
+view opens a request-scoped session and passes only dataclasses to templates. It
+commits explicitly on the success path; the teardown handler rolls back if the
+session is still dirty, then closes. Committing in teardown instead would commit
+the finished half of a request that raised partway through, since teardown runs
+on the exception path too, and Flask hands that exception to the handler.
+
+The UI is responsive across phone, tablet, and desktop (NFR-3). With no framework
+and no build step (Section 2), that is hand-written CSS across three breakpoints
+for every screen, so it is scoped per screen rather than deferred to a styling
+pass at the end.
 
 - Home: pre-selects the time-appropriate mood (`moods.for_time(now)`); shows the
   current session (if any) and the start-a-session control. An empty collection
@@ -562,8 +610,10 @@ days).
 - SQLite writer contention: WAL allows concurrent readers but a single writer, so
   a request write (`log_play`) can collide with the sync thread's commit.
   `busy_timeout` (about 5 seconds) is set on every connection, so the loser waits
-  and retries rather than erroring, and the sync thread commits once at the end,
-  keeping the write window small. This holds only under a single WSGI worker
+  and retries rather than erroring, and the sync thread commits its collection
+  data once at the end, keeping the write window small. Its per-page progress
+  commits (Section 9) are single-row and brief, so they do not widen it
+  meaningfully. This holds only under a single WSGI worker
   (Section 14); multiple workers would each have their own threads and no shared
   guard.
 
@@ -582,7 +632,11 @@ days).
   including the post-midnight wrap.
 - `sync`: mock the Discogs client; assert the vinyl filter, `master_id` grouping
   and no-master fallback, the retirement diff, the run guard, and failure
-  isolation (a partial fetch writes nothing).
+  isolation (a partial fetch writes nothing). Also the recovery paths: a thread
+  that raises still releases the lock, a `running` run left by a killed process
+  is reconciled to failed on startup, and progress is readable from another
+  connection while the fetch is still in flight (the assertion that catches a
+  regression back to one session).
 - `app`: Flask test-client smoke tests for the session, log-play, and sync flows.
 
 ## 14. Deployment
