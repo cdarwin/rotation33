@@ -564,11 +564,28 @@ release listing multiple formats such as an LP-plus-CD (the `any(format ==
 ## 10. Web layer and htmx
 
 Routes live in `app.py` (promoting to `app/` with blueprints if it strains). The
-view opens a request-scoped session and passes only dataclasses to templates. It
-commits explicitly on the success path; the teardown handler rolls back if the
-session is still dirty, then closes. Committing in teardown instead would commit
-the finished half of a request that raised partway through, since teardown runs
-on the exception path too, and Flask hands that exception to the handler.
+view passes only dataclasses to templates.
+
+Transactions follow SQLAlchemy's begin/commit/rollback framing convention
+([session basics][sa-framing]). Components never commit; the caller frames the
+unit of work, and the view is that caller. The framing is a context manager, so
+commit and rollback are structural rather than hand-written on success and
+except paths:
+
+- A **read-only view** uses the request-scoped session (`db()`), which the
+  `teardown_appcontext` handler closes. Reads leave nothing to commit.
+- A **writing view** frames its work in `with write() as db:`, where `write()`
+  is `SessionLocal.begin()`. The block commits on success, rolls back on any
+  exception, and closes the session either way.
+
+A writing view frames a fresh session rather than mutating the request read
+session, which keeps a write from entangling with the request's reads and
+sidesteps SQLAlchemy 2.0 autobegin: `begin()` must be a session's first use, and
+the read session may already have issued a query. Committing in teardown instead
+would commit the finished half of a request that raised partway through, since
+teardown runs on the exception path too; framing removes that path entirely.
+
+[sa-framing]: https://docs.sqlalchemy.org/en/20/orm/session_basics.html#framing-out-a-begin-commit-rollback-block
 
 The UI is responsive across phone, tablet, and desktop (NFR-3). With no framework
 and no build step (Section 2), that is hand-written CSS across three breakpoints
@@ -638,6 +655,14 @@ days).
   connection while the fetch is still in flight (the assertion that catches a
   regression back to one session).
 - `app`: Flask test-client smoke tests for the session, log-play, and sync flows.
+
+Each test runs against a fresh SQLite database from a `tmp_path` fixture. Two
+session fixtures encode the transaction convention (Section 10): `db` for
+arrange-act-assert inside one uncommitted transaction, which is most tests, and
+`begin` for the begin/commit/rollback framing (`with begin() as db:`) wherever a
+test must observe state across a real commit boundary. A test then exercises a
+component through the same framing the view layer uses, rather than a bespoke
+commit pattern that production never runs.
 
 ## 14. Deployment
 

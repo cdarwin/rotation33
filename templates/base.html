@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Rotation33{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-title" href="{{ url_for('home') }}">Rotation33</a>
+    </header>
+    <main class="site-main">
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

@@ -1,2 +1,21 @@
 .claude/
 .vscode/
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+.venv/
+venv/
+*.egg-info/
+
+# Local data volume: SQLite file and cached cover art.
+data/
+*.db
+*.db-wal
+*.db-shm
+
+.env
