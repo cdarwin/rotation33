@@ -2,7 +2,8 @@
 
 **Date:** 2026-07-19
 
-**Status:** Draft, gated on [PR #1](https://github.com/benpencodes/rotation33/pull/1)
+**Status:** Draft. The architecture it builds on is settled and merged in
+[PR #1](https://github.com/benpencodes/rotation33/pull/1).
 
 **Related documents:** [`mvp.md`](/docs/prd/mvp.md),
 [`technical-architecture.md`](/docs/rfc/technical-architecture.md),
@@ -11,7 +12,8 @@
 
 ## 1. Scope
 
-This is the build plan for the MVP: how the architecture in PR #1 gets turned
+This is the build plan for the MVP: how the architecture in
+[`technical-architecture.md`](/docs/rfc/technical-architecture.md) gets turned
 into running code, in what order, with what proof at each step.
 
 It covers sequencing and parallelism, the exit criteria for each phase, the test
