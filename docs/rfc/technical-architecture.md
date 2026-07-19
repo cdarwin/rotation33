@@ -478,11 +478,14 @@ Engine RFC:
 
 ## 9. Discogs sync
 
-A manual trigger (FR-1) first checks for an in-progress `sync_run` and no-ops if
-one is running; this is the guard for "one sync at a time," so two rapid triggers
-cannot both start. Otherwise it spawns a `threading.Thread` that owns its own
-`Session` from `SessionLocal` for its lifetime (the exception to the view owning
-the session, since the thread has no request context). It:
+A manual trigger (FR-1) acquires a module-level `threading.Lock` with a
+non-blocking `acquire()`; a trigger that fails to acquire it no-ops, so two
+rapid triggers cannot both start (a DB check-then-insert is not enough here,
+since gunicorn's threaded workers, Section 14, can interleave two requests
+between the check and the write). The acquiring thread spawns a
+`threading.Thread` that owns its own `Session` from `SessionLocal` for its
+lifetime (the exception to the view owning the session, since the thread has
+no request context), and releases the lock when the thread finishes. It:
 
 1. reads the collection total up front (`folder.count`) into `sync_run.total`,
    then walks the full collection page by page (the client library handles
