@@ -19,14 +19,14 @@ and CI harness, and a requirements traceability matrix showing every FR and NFR
 lands somewhere. It does not re-specify component interfaces; the architecture
 RFC owns those and stays the source of truth.
 
-Section 3 lists design issues that should be settled before or during the build.
-Some are corrections to PR #1 and belong in that review rather than here.
+Section 3 records eight design issues found while reading the RFC against what it
+would take to implement it. All eight are now resolved in the RFC itself.
 
 ## 2. Ground rules
 
 - **The architecture RFC is the contract.** If the build disagrees with it, the
-  RFC gets amended in a PR, not silently diverged from. Section 3 items are the
-  known disagreements as of today.
+  RFC gets amended in a PR, not silently diverged from. Section 3 is the first
+  application of that rule.
 - **A phase is done when its tests pass, not when its code exists.** Exit
   criteria below are written as observable facts, not as "implemented X."
 - **No phase depends on a live Discogs token except Phase 5.** Everything else
@@ -36,11 +36,15 @@ Some are corrections to PR #1 and belong in that review rather than here.
   real recommendation from a real collection, drawn through the real facade, with
   no UI. Getting there early is worth more than a polished template.
 
-## 3. Design issues to settle
+## 3. Design issues settled
 
 These came out of reading the RFC against what it would take to implement it.
-D1, D2, D5, and D8 are defects rather than preferences; D8 is a contradiction
-that will stall Phase 5 if it is not resolved first.
+D1, D2, D5, and D8 were defects rather than preferences, and D8 was a
+contradiction that would have stalled Phase 5.
+
+All eight are resolved in the architecture RFC. They are kept here as the record
+of what changed and why: the RFC states the decisions, and this section is where
+the reasoning behind them lives.
 
 ### D1. The `datetime.min` staleness sentinel is timezone-fragile
 
@@ -64,7 +68,7 @@ staleness = now - last if (last := recency.get(r.id)) else NEVER
 ```
 
 `timedelta.max` is only ever sorted on, never added to a datetime, so it is safe
-in `draw`. **Recommendation:** revert to the explicit sentinel, and state in §2
+in `draw`. **Resolved:** revert to the explicit sentinel, and state in §2
 that `infra.now()` returns naive local time in the configured zone.
 
 ### D2. The sync lock leaks on crash, and `sync_run` orphans on restart
@@ -78,7 +82,7 @@ Separately, the lock guards concurrency but not state. A process killed mid-sync
 leaves a `sync_run` row at `running` forever, so the UI polls a progress bar that
 never completes.
 
-**Recommendation:** release the lock in a `finally` inside the thread body, and
+**Resolved:** release the lock in a `finally` inside the thread body, and
 add a startup reconciliation in the app factory that marks any `running`
 `sync_run` as failed. Both are a few lines; neither is optional.
 
@@ -89,7 +93,7 @@ history worth keeping." The first sync produces real data on day one, and play
 history is the one thing in this system that cannot be regenerated: records can
 be re-synced from Discogs, plays cannot be recovered from anywhere.
 
-**Recommendation:** baseline Alembic in Phase 0, alongside the first table. The
+**Resolved:** baseline Alembic in Phase 0, alongside the first table. The
 cost is one `alembic init` and a generated revision per schema change. The cost
 of retrofitting once there is a month of listening history is a hand-written
 migration under pressure.
@@ -102,7 +106,7 @@ to build the session log, and §10 has the settings view diff `records.styles`
 against `moods.affinity_map` for the FR-18 review list. Both are the view
 composing across two components.
 
-This is fine in practice and the rule is what is wrong. **Recommendation:**
+This is fine in practice and the rule is what is wrong. **Resolved:**
 restate the rule as "a view may join across components for display, but may not
 implement a rule." Anything that decides something goes in a facade. Under that
 wording both examples are legal and the boundary stays meaningful.
@@ -113,7 +117,7 @@ Architecture §10 says the view "commits and closes on teardown." A teardown
 handler runs after an exception too, so a request that raised halfway through a
 multi-step write commits the half it finished.
 
-**Recommendation:** commit explicitly in the view on the success path; the
+**Resolved:** commit explicitly in the view on the success path; the
 teardown handler rolls back if the session is still dirty, then closes. Flask's
 `teardown_appcontext` receives the exception, so the check is direct.
 
@@ -127,7 +131,7 @@ split its recency history.
 That pressing id is the only durable handle for reconciling such a split after
 the fact. It is one integer, free from the listing payload.
 
-**Recommendation:** make it a required column, not an optional one, and say why.
+**Resolved:** make it a required column, not an optional one, and say why.
 It is cheap insurance against the one accepted data-loss risk in the design.
 
 ### D7. NFR-3 is one sentence and a real workstream
@@ -136,14 +140,14 @@ Responsive across phone, tablet, and desktop (NFR-3) appears as a parenthetical
 in §10. With no build step and no framework, that is hand-written CSS across
 three breakpoints for every screen, and it is the phase most likely to overrun.
 
-**Recommendation:** decide the approach in Phase 0 rather than Phase 6. Proposed:
-a single hand-written stylesheet, mobile-first, CSS custom properties for the
-palette, flexbox and grid only, no preprocessor. Budget it as its own task inside
-Phase 6 rather than treating it as free.
+**Resolved:** the approach is settled in Phase 0 rather than discovered in Phase
+6: a single hand-written stylesheet, mobile-first, CSS custom properties for the
+palette, flexbox and grid only, no preprocessor. It is budgeted per screen inside
+Phase 6 rather than treated as free.
 
 ### D8. Progress reporting contradicts the single-transaction rule
 
-This one blocks Phase 5.
+This one would have blocked Phase 5.
 
 Architecture §9 step 1 advances `sync_run.processed` per page so the htmx bar can
 poll it. §9 failure isolation says the commit happens "only after a complete,
@@ -156,7 +160,7 @@ finishes, then jumps to complete. If progress is committed as it goes, the sync
 is no longer one transaction and partial state can survive a failure, which is
 what the isolation rule exists to prevent.
 
-**Recommendation:** split them. The sync thread holds two sessions: a data
+**Resolved:** split them. The sync thread holds two sessions: a data
 session that stays open across the whole fetch and commits once at the end, and a
 short-lived progress session that opens, updates `sync_run`, commits, and closes
 per page. `sync_run` is metadata about the run, not collection data, so
@@ -473,7 +477,7 @@ the LAN interface only.
 | Risk | Likelihood | Impact | Response |
 |---|---|---|---|
 | Live Discogs data breaks the sync mapping | Medium | High | Fixture in Phase 1b; live confirmation gated as Phase 5 exit, not discovered in Phase 8 |
-| D8 progress contradiction implemented naively | High if unresolved | Medium | Settle D8 before Phase 5 starts; it is cheap now and a rewrite later |
+| Sync regresses to one session, killing the progress bar | Low | Medium | D8 settled in the RFC; the Phase 5 suite asserts progress is readable from another connection mid-fetch |
 | Responsive CSS overruns Phase 6 | Medium | Medium | D7: approach decided in Phase 0, styling budgeted per screen |
 | Discogs master reassignment splits recency history | Low | High | Accepted in PRD and RFC; D6 keeps the pressing id so a future reconciliation is possible |
 | SQLite write contention under sync | Low | Low | WAL plus `busy_timeout`, single writer, small write window; single worker enforced in compose |
