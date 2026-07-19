@@ -343,7 +343,10 @@ The flow inside `generate`:
 
 1. `affinity = moods.affinity(db, session.mood)`, mapped to `picker.Affinity`.
 2. `pool = records.recommendable(db)`; `recency = sessions.latest_plays(db)`.
-3. `candidates = [picker.Candidate(r.id, r.styles, now - recency.get(r.id, ...)) for r in pool]`.
+3. `candidates = [picker.Candidate(r.id, r.styles, now - recency.get(r.id, datetime.min)) for r in pool]`;
+   `datetime.min` on a never-played release yields a staleness far larger than
+   any real gap, guaranteeing it ranks first without needing to equal
+   `timedelta.max` exactly.
 4. `fit = picker.matching(candidates, affinity)`, which is also the FR-10 "does anything fit" pool.
 5. exclude release ids where `now - last_play <= window(db)` (FR-4), plus this
    session's played releases (`sessions.plays`) and shown releases (own
@@ -367,7 +370,8 @@ the one place a persisted pick can silently vanish, and it is intended.
 class Candidate:
     release_id: ReleaseId
     styles: Sequence[str]
-    staleness: timedelta             # now - last_played; timedelta.max = never played (ranks first)
+    staleness: timedelta             # now - last_played; a never-played release gets a value
+                                      # far larger than any real gap, so it ranks first
 
 @dataclass(frozen=True)
 class Affinity:                      # picker's own fit input, self-contained at the swap boundary
