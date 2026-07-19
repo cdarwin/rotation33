@@ -80,6 +80,8 @@ there's something to deploy.
   component design, storage, sync, and deployment.
 - [Recommendation engine design](docs/rfc/recommendation-engine-design.md)
   covers how suggestions are actually generated.
+- [Execution plan](docs/plan/execution-plan.md) covers the build order, what
+  each phase has to prove, and how requirements map onto it.
 
 ## Status
 
