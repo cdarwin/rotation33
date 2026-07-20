@@ -14,7 +14,8 @@ from __future__ import annotations
 import infra  # noqa: F401  (re-exported for convenience)
 
 # Components with tables, added as each phase lands:
-# import records   # noqa: F401
+import records  # noqa: F401
+
 # import moods     # noqa: F401
 # import sessions  # noqa: F401
 # import recommendations  # noqa: F401
