@@ -141,6 +141,29 @@ covered by a synthetic fixture item. See Caveats.
 | Format scope | Keep Instance if any format name is `"Vinyl"`; Release exists if >= 1 vinyl Instance |
 | Cost | Full sync is one paginated collection walk; no N+1 |
 
+## Phase 5 live sync
+
+A full production sync ran against the live collection (74 items) end to end:
+paginate, vinyl filter, group by resolved identity, upsert, download cover art,
+reconcile retirements, commit. It completed clean (74/74, no error) and matched
+the fixture exactly, which both confirms the pipeline against the real API and
+shows the collection is unchanged since the Phase 1b capture.
+
+What the live sync proved that the fixture could not, because the fixture tests
+run against a fake collection rather than the client library:
+
+- The listing shape the `_DiscogsCollection` adapter assumes is the shape the
+  live client returns: `instance_id`, `id`, and a `basic_information` carrying
+  `formats`, `master_id`, `styles`, `title`, `year`, `cover_image`.
+- The vinyl filter drops a CD on live data: the Mutiny master (`m4160569`) came
+  through with two instances, the CD gone, both pressings kept.
+- The `master_id: 0` fallback produces the right releases from real data, the
+  two `r<id>` albums above.
+- Cover-art download works against the live image host (71 of 71 fetched).
+
+The Vinyl-plus-CD edge is the one thing still unconfirmed against live data, for
+the same reason as below: no such item exists in the collection.
+
 ## Caveats
 
 - "No extra fetch for master_id" was inferred from values matching, not from a
