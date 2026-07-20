@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Rotation33{% endblock %}
+
+{% block content %}
+  {% if collection_empty %}
+    {# FR-19: an empty collection leads with a sync, not an empty picker. #}
+    <section class="panel empty-collection">
+      <h1>Nothing here yet</h1>
+      <p class="lede">Your collection is empty. Sync it from Discogs to get started.</p>
+      <a class="button" href="{{ url_for('sync_page') }}">Run a sync</a>
+    </section>
+  {% else %}
+    {% if session %}
+      <section class="panel current-session">
+        <h2>Current session</h2>
+        <p><span class="mood-tag">{{ session.mood }}</span></p>
+        <a class="button" href="{{ url_for('session_view') }}">See picks</a>
+      </section>
+    {% endif %}
+
+    <section class="panel">
+      <h1>Start a session</h1>
+      <form method="post" action="{{ url_for('session_start') }}" class="start-form">
+        <fieldset class="mood-choices">
+          <legend>Mood</legend>
+          {# FR-3: pre-select the time-appropriate mood. #}
+          {% for mood in moods %}
+            <label class="mood-choice">
+              <input type="radio" name="mood" value="{{ mood.name }}"
+                     {% if mood.name == suggested_mood %}checked{% endif %}>
+              <span class="mood-choice-name">{{ mood.name }}</span>
+              <span class="mood-choice-desc">{{ mood.description }}</span>
+            </label>
+          {% endfor %}
+        </fieldset>
+        <button type="submit" class="button">Start</button>
+      </form>
+    </section>
+  {% endif %}
+{% endblock %}

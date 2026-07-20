@@ -1,30 +1,39 @@
 """Flask app factory, request session lifecycle, and routes.
 
-Phase 0 stands up the factory and the session lifecycle only; the screens
-arrive in Phase 6. Keeping the shape here from the start means later phases add
-routes rather than discover the wiring.
+Thin views over the components (RFC section 10): a view may join across
+components for display but never implements a rule, which lives in a facade.
+Reads use the request-scoped `db()` session; writes frame a unit of work with
+`with write() as db:`, so commit and rollback are structural (RFC section 10).
 
-Transactions follow the SQLAlchemy begin/commit/rollback framing convention
-(RFC section 10). Components never commit; the caller frames the unit of work.
-A view that only reads uses the request-scoped `db()` session, which teardown
-closes. A view that writes frames its work explicitly:
-
-    with write() as db:
-        sessions.log_play(db, ...)
-    # committed on success, rolled back on exception, closed either way
-
-Commit and rollback are structural, never hand-written on a success/except path,
-which is what keeps a half-finished request from committing its finished half.
+The two htmx interactions the plan calls for are the regenerate swap (FR-9) and
+the sync progress poll (FR-1). Everything else is a plain form post with a
+redirect, which works without JavaScript and keeps the surface small.
 """
 
 from __future__ import annotations
 
+import json
+import os
 from contextlib import AbstractContextManager
 
-from flask import Flask, g, render_template
+from flask import (
+    Flask,
+    abort,
+    flash,
+    g,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
 from sqlalchemy.orm import Session
 
 import infra
+import moods
+import recommendations
+import records
+import sessions
 import sync
 
 
@@ -38,6 +47,9 @@ def create_app() -> Flask:
         sync.reconcile_orphaned_runs(startup)
 
     app = Flask(__name__)
+    # Signs the flash-message cookie. A per-process key is fine: one worker
+    # (RFC section 14), single user, and flashes only need to survive a redirect.
+    app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(32)
 
     @app.teardown_appcontext
     def close_session(exception: BaseException | None) -> None:
@@ -55,11 +67,202 @@ def create_app() -> Flask:
             session.rollback()
         session.close()
 
+    # --- Home -------------------------------------------------------------
+
     @app.route("/")
     def home() -> str:
-        return render_template("index.html")
+        now = infra.now()
+        return render_template(
+            "home.html",
+            active_nav="home",
+            current=sessions.current(db()),
+            collection_empty=not records.browse(db()),
+            moods=moods.choices(db()),
+            suggested_mood=moods.for_time(now),
+        )
+
+    @app.post("/session/start")
+    def session_start():
+        mood = request.form.get("mood", "")
+        if mood not in moods.NAMES:
+            flash("Pick a mood to start a session.")
+            return redirect(url_for("home"))
+        with write() as tx:
+            session = sessions.start(tx, mood, infra.now())
+            recommendations.generate(tx, session.id, infra.now())
+        return redirect(url_for("session_view"))
+
+    # --- Session ----------------------------------------------------------
+
+    @app.route("/session")
+    def session_view() -> str:
+        session = sessions.current(db())
+        result = (
+            recommendations.active(db(), session.id)
+            if session
+            else recommendations.RecommendationResult(releases=[])
+        )
+        return render_template(
+            "session.html",
+            active_nav="home",
+            session=session,
+            result=result,
+            empty_message=_empty_message(result.reason),
+        )
+
+    @app.post("/session/regenerate")
+    def session_regenerate() -> str:
+        session = sessions.current(db())
+        if session is None:
+            abort(409, "No current session.")
+        with write() as tx:
+            recommendations.generate(tx, session.id, infra.now())
+        # htmx swaps just the picks panel back in (FR-9).
+        result = recommendations.active(db(), session.id)
+        return render_template(
+            "_picks.html", result=result, empty_message=_empty_message(result.reason)
+        )
+
+    # --- Log play ---------------------------------------------------------
+
+    @app.route("/log")
+    def log_play() -> str:
+        query = request.args.get("q", "").strip()
+        albums = records.search(db(), query) if query else records.browse(db())
+        session = sessions.current(db())
+        return render_template(
+            "log.html",
+            active_nav="log",
+            albums=albums,
+            query=query,
+            session=session,
+            log=_session_log(db(), session),
+        )
+
+    @app.post("/log/play")
+    def log_record():
+        session = sessions.current(db())
+        if session is None:
+            flash("Start a session before logging a play.")
+            return redirect(url_for("home"))
+        instance_id = request.form.get("instance_id", "")
+        release_id = request.form.get("release_id", "")
+        with write() as tx:
+            sessions.log_play(tx, session.id, instance_id, release_id, infra.now())
+        flash("Logged.")
+        return redirect(url_for("log_play", q=request.form.get("q", "")))
+
+    @app.post("/log/remove/<play_id>")
+    def log_remove(play_id: str):
+        with write() as tx:
+            sessions.remove_play(tx, play_id)  # enforces current-session-only (FR-12b)
+        return redirect(url_for("log_play", q=request.form.get("q", "")))
+
+    # --- Condition --------------------------------------------------------
+
+    @app.route("/condition")
+    def condition() -> str:
+        return render_template(
+            "condition.html", active_nav="condition", albums=records.browse(db())
+        )
+
+    @app.post("/condition/toggle")
+    def condition_toggle():
+        instance_id = request.form.get("instance_id", "")
+        playable = request.form.get("playable") == "on"
+        with write() as tx:
+            records.set_playable(tx, instance_id, playable)
+        return redirect(url_for("condition"))
+
+    # --- Settings ---------------------------------------------------------
+
+    @app.route("/settings")
+    def settings() -> str:
+        present = records.styles(db())
+        mapped = set(moods.affinity_map(db()))
+        return render_template(
+            "settings.html",
+            active_nav="settings",
+            window_days=int(recommendations.window(db()).days),
+            moods=moods.choices(db()),
+            affinity_json=json.dumps(moods.affinity_map(db()), indent=2, sort_keys=True),
+            unmapped=sorted(present - mapped),  # FR-18 review list
+        )
+
+    @app.post("/settings/window")
+    def settings_window():
+        try:
+            days = int(request.form.get("days", ""))
+            with write() as tx:
+                recommendations.set_window(tx, days)
+        except (ValueError, recommendations.InvalidWindow):
+            flash("The recency window must be a whole number of days, zero or more.")
+        return redirect(url_for("settings"))
+
+    @app.post("/settings/mood/<name>")
+    def settings_description(name: str):
+        try:
+            with write() as tx:
+                moods.set_description(tx, name, request.form.get("description", ""))
+        except moods.UnknownMood:
+            abort(404)
+        return redirect(url_for("settings"))
+
+    @app.post("/settings/affinity")
+    def settings_affinity():
+        try:
+            mapping = json.loads(request.form.get("affinity", ""))
+            with write() as tx:
+                moods.set_affinity_map(tx, mapping)
+            flash("Affinity map saved.")
+        except json.JSONDecodeError:
+            flash("That is not valid JSON.")
+        except (moods.InvalidAffinity, moods.UnknownMood, TypeError, AttributeError) as exc:
+            flash(f"The affinity map was rejected: {exc}")
+        return redirect(url_for("settings"))
+
+    # --- Sync -------------------------------------------------------------
+
+    @app.route("/sync")
+    def sync_page() -> str:
+        return render_template(
+            "sync.html",
+            active_nav="sync",
+            run=sync.latest(db()),
+            pending=records.pending_retirements(db()),
+        )
+
+    @app.post("/sync/trigger")
+    def sync_trigger():
+        if not sync.trigger():
+            flash("A sync is already running.")
+        return redirect(url_for("sync_page"))
+
+    @app.route("/sync/progress")
+    def sync_progress() -> str:
+        # htmx polls this while a sync runs (FR-1).
+        return render_template("_sync_status.html", run=sync.latest(db()))
+
+    @app.post("/sync/retire")
+    def sync_retire():
+        instance_ids = request.form.getlist("instance_id")
+        with write() as tx:
+            records.confirm_retirement(tx, instance_ids)  # FR-2a
+        flash(f"Retired {len(instance_ids)}.")
+        return redirect(url_for("sync_page"))
+
+    # --- Cover art --------------------------------------------------------
+
+    @app.route("/covers/<path:filename>")
+    def cover(filename: str):
+        # Served from the data volume, not the static dir (RFC section 7). The
+        # URL scheme matches records._served_url: /covers/<release-id>.jpg.
+        return send_from_directory(infra.covers_dir(), filename)
 
     return app
+
+
+# --- Request-scoped session helpers ----------------------------------------
 
 
 def db() -> Session:
@@ -78,3 +281,39 @@ def write() -> AbstractContextManager[Session]:
     the request's reads.
     """
     return infra.SessionLocal.begin()
+
+
+# --- Display helpers (join across components; decide nothing) --------------
+
+_EMPTY_MESSAGES = {
+    recommendations.EmptyReason.NOTHING_AVAILABLE: (
+        "Nothing to play yet. Run a sync, or check that some records are marked playable."
+    ),
+    recommendations.EmptyReason.NO_FIT: (
+        "Nothing in the collection fits this mood. Widen the mood's affinity map in Settings."
+    ),
+    recommendations.EmptyReason.ALL_RECENT: (
+        "Everything that fits was played recently. Come back later, or shorten the recency "
+        "window in Settings."
+    ),
+}
+
+
+def _empty_message(reason: recommendations.EmptyReason | None) -> str | None:
+    return _EMPTY_MESSAGES.get(reason) if reason else None
+
+
+def _session_log(session_db: Session, session: sessions.Session | None) -> list[dict]:
+    """The current session's plays, joined to records for artwork and titles.
+
+    This is display composition, which the view owns: `sessions.plays` returns
+    ids, and the join to `records` for a title lives here, not in a facade
+    (RFC section 3).
+    """
+    if session is None:
+        return []
+    entries = []
+    for play in sessions.plays(session_db, session.id):
+        release = records.get(session_db, play.release_id)
+        entries.append({"play": play, "release": release})
+    return entries

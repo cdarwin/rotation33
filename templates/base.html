@@ -5,12 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Rotation33{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='vendor/htmx.min.js') }}" defer></script>
   </head>
   <body>
     <header class="site-header">
       <a class="site-title" href="{{ url_for('home') }}">Rotation33</a>
+      <nav class="site-nav" aria-label="Primary">
+        {% set active = active_nav | default('') %}
+        <a href="{{ url_for('home') }}" {% if active == 'home' %}aria-current="page"{% endif %}>Home</a>
+        <a href="{{ url_for('log_play') }}" {% if active == 'log' %}aria-current="page"{% endif %}>Log</a>
+        <a href="{{ url_for('condition') }}" {% if active == 'condition' %}aria-current="page"{% endif %}>Condition</a>
+        <a href="{{ url_for('settings') }}" {% if active == 'settings' %}aria-current="page"{% endif %}>Settings</a>
+        <a href="{{ url_for('sync_page') }}" {% if active == 'sync' %}aria-current="page"{% endif %}>Sync</a>
+      </nav>
     </header>
     <main class="site-main">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <ul class="flashes" role="status">
+            {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
       {% block content %}{% endblock %}
     </main>
   </body>

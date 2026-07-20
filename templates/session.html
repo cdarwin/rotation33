@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Session · Rotation33{% endblock %}
+
+{% block content %}
+  {% if session %}
+    <section class="panel session-head">
+      <div>
+        <h1>Session</h1>
+        <p><span class="mood-tag">{{ session.mood }}</span></p>
+      </div>
+      {# FR-9: regenerate swaps only the picks panel back in. #}
+      <button class="button" hx-post="{{ url_for('session_regenerate') }}"
+              hx-target="#picks" hx-swap="innerHTML">Regenerate</button>
+    </section>
+
+    <div id="picks">
+      {% include "_picks.html" %}
+    </div>
+  {% else %}
+    <section class="panel">
+      <p class="lede">No session yet.</p>
+      <a class="button" href="{{ url_for('home') }}">Start one</a>
+    </section>
+  {% endif %}
+{% endblock %}

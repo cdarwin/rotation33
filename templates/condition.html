@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Condition · Rotation33{% endblock %}
+
+{% block content %}
+  <section class="panel">
+    <h1>Condition</h1>
+    <p class="lede">A copy that is not playable stays browsable and loggable, but is kept out of
+      suggestions (FR-13).</p>
+
+    {% if not albums %}
+      <p class="lede">No records yet.</p>
+    {% endif %}
+
+    <ul class="album-list">
+      {% for album in albums %}
+        {% for inst in album.instances %}
+          <li class="album-row">
+            <div class="album-id">
+              <p class="album-title">{{ album.title }}</p>
+              <p class="album-artist">{{ album.artist }}{% if inst.description %} · {{ inst.description }}{% endif %}</p>
+            </div>
+            {# Post the intended next state, so the checkbox is the control, not a toggle race. #}
+            <form method="post" action="{{ url_for('condition_toggle') }}" class="toggle-form">
+              <input type="hidden" name="instance_id" value="{{ inst.id }}">
+              <label class="switch">
+                <input type="checkbox" name="playable" onchange="this.form.submit()"
+                       {% if inst.is_playable %}checked{% endif %}>
+                <span>Playable</span>
+              </label>
+              <noscript><button type="submit" class="button button-quiet">Save</button></noscript>
+            </form>
+          </li>
+        {% endfor %}
+      {% endfor %}
+    </ul>
+  </section>
+{% endblock %}

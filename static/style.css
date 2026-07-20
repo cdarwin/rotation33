@@ -2,8 +2,8 @@
  *
  * The D7 decision, made concrete: one hand-written stylesheet, mobile-first,
  * custom properties for the palette, flexbox and grid for layout, no
- * preprocessor and no build step. Screens style themselves against the tokens
- * and the two breakpoints below rather than inventing their own.
+ * preprocessor and no build step. NFR-3 is met per component here rather than
+ * in a styling pass at the end.
  *
  * Breakpoints (min-width, mobile-first):
  *   phone    base, no media query
@@ -14,10 +14,14 @@
 :root {
   --bg: #14110f;
   --surface: #1e1a17;
+  --surface-2: #262019;
   --border: #332c27;
   --text: #f0e9e2;
   --text-dim: #a2968b;
   --accent: #c2683f;
+  --accent-text: #14110f;
+  --ok: #6fae7a;
+  --bad: #d9705f;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -25,8 +29,8 @@
   --space-4: 1.5rem;
   --space-5: 2.5rem;
 
-  --radius: 4px;
-  --measure: 34rem;
+  --radius: 6px;
+  --measure: 36rem;
 
   --font: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
@@ -45,12 +49,29 @@ body {
   line-height: 1.5;
 }
 
+h1 {
+  font-size: 1.5rem;
+  margin: 0 0 var(--space-3);
+}
+h2 {
+  font-size: 1.15rem;
+  margin: 0 0 var(--space-2);
+}
+
+a {
+  color: var(--accent);
+}
+
+/* --- Header and nav ------------------------------------------------------ */
+
 .site-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
   padding: var(--space-3);
   border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .site-title {
@@ -58,6 +79,23 @@ body {
   font-weight: 600;
   letter-spacing: 0.02em;
   text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+
+.site-nav a {
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: var(--space-1) 0;
+}
+
+.site-nav a[aria-current="page"] {
+  color: var(--text);
+  border-bottom: 2px solid var(--accent);
 }
 
 .site-main {
@@ -69,17 +107,339 @@ body {
   max-width: var(--measure);
 }
 
+/* --- Panels -------------------------------------------------------------- */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  margin: 0 0 var(--space-3);
+}
+
+.flashes {
+  list-style: none;
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-2);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+}
+
+/* --- Buttons and forms --------------------------------------------------- */
+
+.button {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-4);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button:hover {
+  filter: brightness(1.08);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.button-quiet {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: var(--space-1) var(--space-3);
+}
+
+input[type="text"],
+input[type="search"],
+input[type="number"],
+textarea {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-2);
+  width: 100%;
+  max-width: 100%;
+}
+
+textarea {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+label {
+  display: block;
+}
+
+.inline-form,
+.search-form,
+.mood-desc-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.search-form input {
+  flex: 1 1 12rem;
+}
+
+.mood-desc-form {
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.mood-desc-label {
+  flex: 1 1 16rem;
+}
+
+.affinity-form textarea {
+  margin-bottom: var(--space-2);
+}
+
+/* --- Home: mood choices -------------------------------------------------- */
+
+.mood-tag {
+  display: inline-block;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: var(--space-1) var(--space-3);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.mood-choices {
+  border: none;
+  padding: 0;
+  margin: 0 0 var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.mood-choice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-2);
+  align-items: baseline;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.mood-choice:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.mood-choice-name {
+  font-weight: 600;
+}
+
+.mood-choice-desc {
+  grid-column: 2;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+/* --- Session: picks ------------------------------------------------------ */
+
+.session-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.pick-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+.pick-card {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.cover,
+.cover img,
+.cover-placeholder {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius);
+  flex: 0 0 auto;
+}
+
+.cover img {
+  object-fit: cover;
+  display: block;
+}
+
+.cover-placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: 1.5rem;
+}
+
+.pick-title {
+  font-weight: 600;
+  margin: 0;
+}
+
+.pick-artist {
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.pick-styles {
+  margin: var(--space-1) 0 0;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.empty-reason {
+  color: var(--text-dim);
+  max-width: var(--measure);
+}
+
+/* --- Album lists (log, condition, retire) -------------------------------- */
+
+.album-list,
+.log-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.album-row,
+.log-entry {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border);
+}
+
+.album-title {
+  font-weight: 600;
+  margin: 0;
+}
+
+.album-artist {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.log-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.instance-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.instance-choice label,
+.retire-choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.retire-choice span {
+  display: flex;
+  flex-direction: column;
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* --- Settings ------------------------------------------------------------ */
+
+.style-review {
+  columns: 2 12rem;
+  color: var(--text-dim);
+}
+
+/* --- Sync progress ------------------------------------------------------- */
+
+.sync-status {
+  margin-top: var(--space-3);
+}
+
+.progress {
+  height: 0.75rem;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: var(--space-2);
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.status-ok {
+  color: var(--ok);
+}
+
+.status-bad {
+  color: var(--bad);
+}
+
+/* --- Tablet -------------------------------------------------------------- */
+
 @media (min-width: 40rem) {
   .site-header,
   .site-main {
     padding: var(--space-4);
   }
+
+  .pick-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
+
+/* --- Desktop ------------------------------------------------------------- */
 
 @media (min-width: 64rem) {
   .site-main {
     margin: 0 auto;
-    max-width: 68rem;
+    max-width: 72rem;
     padding: var(--space-5) var(--space-4);
+  }
+
+  .pick-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }

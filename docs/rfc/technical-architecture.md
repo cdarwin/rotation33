@@ -23,7 +23,7 @@ Section 8 lists the points where this design revises the PRD and the engine RFC.
 | Concern | Choice | Why |
 |---|---|---|
 | Backend | Flask + Jinja | Server-rendered, one process. Enough for a single-user LAN app with no async. |
-| Interactivity | htmx | Partial HTML swaps for log-play, regenerate, and sync progress. No build step, no SPA, no JSON API. |
+| Interactivity | htmx | Partial HTML swaps for regenerate and the sync progress poll. No build step, no SPA, no JSON API. Log-play and the other form actions are plain post-and-redirect: they carry no partial-update benefit that would repay the extra moving part, and they keep working without JavaScript. |
 | Datastore | SQLite (WAL mode, `busy_timeout` set) | Single file on the data volume, zero-config, trivial backup. WAL gives concurrent readers plus one writer; `busy_timeout` absorbs write-vs-sync contention (Section 12). |
 | ORM | SQLAlchemy | Relations map cleanly; a hairy read can drop to raw SQL. |
 | Discogs | python3-discogs-client | Handles auth, pagination, and rate-limit backoff. |

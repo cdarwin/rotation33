@@ -1,0 +1,25 @@
+{% if result.releases %}
+  <ul class="pick-grid">
+    {% for release in result.releases %}
+      <li class="pick-card">
+        <div class="cover">
+          {% if release.cover_url %}
+            <img src="{{ release.cover_url }}" alt="Cover of {{ release.title }}" loading="lazy">
+          {% else %}
+            <div class="cover-placeholder" aria-hidden="true">♪</div>
+          {% endif %}
+        </div>
+        <div class="pick-meta">
+          <p class="pick-title">{{ release.title }}</p>
+          <p class="pick-artist">{{ release.artist }}{% if release.year %} · {{ release.year }}{% endif %}</p>
+          {% if release.styles %}
+            <p class="pick-styles">{{ release.styles | join(', ') }}</p>
+          {% endif %}
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  {# FR-10: no picks, and why. #}
+  <p class="empty-reason">{{ empty_message or "No picks." }}</p>
+{% endif %}
