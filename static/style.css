@@ -1,0 +1,85 @@
+/* Rotation33 stylesheet.
+ *
+ * The D7 decision, made concrete: one hand-written stylesheet, mobile-first,
+ * custom properties for the palette, flexbox and grid for layout, no
+ * preprocessor and no build step. Screens style themselves against the tokens
+ * and the two breakpoints below rather than inventing their own.
+ *
+ * Breakpoints (min-width, mobile-first):
+ *   phone    base, no media query
+ *   tablet   40rem
+ *   desktop  64rem
+ */
+
+:root {
+  --bg: #14110f;
+  --surface: #1e1a17;
+  --border: #332c27;
+  --text: #f0e9e2;
+  --text-dim: #a2968b;
+  --accent: #c2683f;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+
+  --radius: 4px;
+  --measure: 34rem;
+
+  --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  line-height: 1.5;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-title {
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.site-main {
+  padding: var(--space-3);
+}
+
+.lede {
+  color: var(--text-dim);
+  max-width: var(--measure);
+}
+
+@media (min-width: 40rem) {
+  .site-header,
+  .site-main {
+    padding: var(--space-4);
+  }
+}
+
+@media (min-width: 64rem) {
+  .site-main {
+    margin: 0 auto;
+    max-width: 68rem;
+    padding: var(--space-5) var(--space-4);
+  }
+}

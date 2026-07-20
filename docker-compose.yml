@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    # LAN is the trust boundary (NFR-2); nothing here is exposed beyond it.
+    ports:
+      - "8000:8000"
+    environment:
+      DATA_DIR: /data
+      TZ: ${TZ:-UTC}
+      DISCOGS_TOKEN: ${DISCOGS_TOKEN:-}
+      DISCOGS_USERNAME: ${DISCOGS_USERNAME:-}
+    volumes:
+      # The SQLite file and covers/ share one volume, so a volume snapshot is
+      # the whole backup.
+      - rotation33-data:/data
+    restart: unless-stopped
+
+volumes:
+  rotation33-data:
