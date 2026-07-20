@@ -293,6 +293,7 @@ class Play:
 
 ```python
 def current(db) -> Session | None    # the latest session; None only on first run
+def get(db, session_id) -> Session   # one session by id; raises UnknownSession
 def start(db, mood, now) -> Session   # always a new session; the prior one stops being latest
 def log_play(db, session_id, instance_id, release_id, played_at) -> Play
 def remove_play(db, play_id) -> None  # FR-12b; enforces "current session only" against current()
@@ -306,6 +307,13 @@ def latest_plays(db) -> dict[ReleaseId, datetime]      # most recent play per re
 first) from it. Retired instances keep their plays' `release_id`, so they still
 contribute to release recency (FR-2a). Removing a play shrinks the set, restoring
 eligibility with no special case (FR-12b).
+
+`get` is non-optional and raises `UnknownSession`, unlike `records.get` which
+returns `None`. The facade needs a session's mood by id (Section 5.4 step 1) and
+`current` cannot serve that read: it would make `generate` fail on a valid but
+no-longer-latest session, and it conflates "not the current session" with "no
+such session." One of those is a normal state and the other is a fault, so they
+cannot share a return value.
 
 The session-log display is assembled by the view: `plays` returns ids, and the
 view joins to `records` for artwork and titles.
@@ -372,6 +380,23 @@ The flow inside `generate`:
 ordered by `position` and calls `records.get` on each id, dropping any release
 retired or removed since it was generated (rare; the batch shows fewer). This is
 the one place a persisted pick can silently vanish, and it is intended.
+
+Before anything has been generated for a session, `active` returns empty with
+`reason` as `None`. "Nothing generated yet" is not one of FR-10's explained-empty
+states, and it must not be reported as one: every `EmptyReason` is a claim about
+the collection ("nothing available", "nothing fits", "all played recently"), and
+none of those has been established when no draw has happened. Only `generate`
+holds the pool and fit sets needed to tell them apart, so `active` cannot
+manufacture a reason without re-deriving them. The view renders this state as
+"no picks yet," distinct from FR-10's explained empty.
+
+The batch is keyed by a surrogate id rather than the natural
+`(session_id, generated_at, position)`. "Latest batch" means greatest
+`generated_at`, which is ambiguous only if two generates share a timestamp — not
+reachable in production at microsecond resolution with a user-driven trigger,
+but routine in tests that pass a fixed `now`. Under the natural key that
+collision would be an integrity error rather than a harmless merge, so the
+surrogate key keeps a test-only artifact from becoming a crash.
 
 ### 5.5 `picker` (pure engine)
 

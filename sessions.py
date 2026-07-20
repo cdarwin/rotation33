@@ -145,6 +145,10 @@ class _Mapper:
     def session_exists(self, session_id: str) -> bool:
         return self._db.get(_SessionRow, session_id) is not None
 
+    def get(self, session_id: str) -> Session | None:
+        row = self._db.get(_SessionRow, session_id)
+        return self._session(row) if row else None
+
     def plays(self, session_id: str) -> list[Play]:
         stmt = (
             select(_PlayRow)
@@ -196,6 +200,25 @@ def current(db: DbSession) -> Session | None:
     starting one.
     """
     return _Mapper(db).current()
+
+
+def get(db: DbSession, session_id: str) -> Session:
+    """One session by id. Raises rather than returning None.
+
+    Added for the `recommendations` facade, which is handed a `session_id` and
+    needs the mood behind it (RFC section 5.4 step 1). The RFC's section 5.3
+    interface list omits this, but every operation the facade performs on a
+    session is keyed by id rather than by "the current one", and conflating the
+    two would make `generate` fail on a valid-but-not-latest session.
+
+    Optional-vs-raising follows `moods.get`, not `records.get`: a session id
+    only ever arrives from a session this system minted, so a miss is a caller
+    bug rather than a user state.
+    """
+    session = _Mapper(db).get(session_id)
+    if session is None:
+        raise UnknownSession(session_id)
+    return session
 
 
 def start(db: DbSession, mood: str, now: datetime) -> Session:

@@ -1,0 +1,341 @@
+"""The facade that turns a mood and a collection into picks, and remembers them.
+
+This is the one component that imports downward. The rule in architecture RFC
+section 3 is "no import cycles", not "no imports": a facade whose whole job is
+coordination has to reach the things it coordinates. So `recommendations`
+depends on `records`, `sessions`, `moods` and `picker`, and none of those four
+depends on it or on each other.
+
+That dependency is also what lets this module return fully rendered `Release`
+objects rather than bare ids. `sessions` returns ids and makes the view join,
+because it cannot see `records`; this module already can, so making the caller
+join again would be gratuitous.
+
+Everything else follows the conventions `records` set down: private ORM rows, a
+session-bound `_Mapper` as the only code touching a table, rules and validation
+in the public functions, and nothing commits. The caller owns the transaction.
+"""
+
+from __future__ import annotations
+
+import random
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import Enum
+
+from sqlalchemy import DateTime, ForeignKey, Integer, String, func, select
+from sqlalchemy.orm import Mapped, Session, mapped_column
+
+import infra
+import moods
+import picker
+import records
+import sessions
+
+ReleaseId = str
+
+COUNT = 5
+"""How many picks `generate` asks for. `picker` returns up to this many.
+
+FR-4 says "3 to 5", but the 3 is not a floor (RFC section 8): a thin pool
+yielding one or two picks is a valid result shown as-is. Only an empty draw is
+FR-10's explained-empty case.
+"""
+
+DEFAULT_WINDOW_DAYS = 3
+"""Code default for the recency window (FR-14, RFC section 11).
+
+Not an env var: it is user-editable at runtime and persisted here.
+"""
+
+
+class InvalidWindow(Exception):
+    """Raised when a recency window is set to something nonsensical."""
+
+
+class EmptyReason(Enum):
+    """Why a generate came back with nothing (FR-10).
+
+    An enum rather than a message so the view owns the wording and the reason
+    stays testable.
+    """
+
+    NOTHING_AVAILABLE = "nothing_available"  # no playable, non-retired records at all
+    NO_FIT = "no_fit"  # records exist, none fit this mood
+    ALL_RECENT = "all_recent"  # fit exists, but all played recently or excluded
+
+
+@dataclass(frozen=True)
+class RecommendationResult:
+    """A batch of picks, or an empty batch that knows why it is empty.
+
+    `reason` travels in the same object as `releases` precisely so a caller
+    cannot render the empty list and drop the explanation on the floor (RFC
+    section 5.4). It is set only when `releases` is empty.
+    """
+
+    releases: list[records.Release]  # in draw order; empty when nothing was drawn
+    reason: EmptyReason | None = None
+
+
+# --- Storage (RFC section 7) ----------------------------------------------
+
+
+class _RecommendationRow(infra.Base):
+    """One drawn release. A batch is the rows sharing a `generated_at`.
+
+    Rows accumulate and are never pruned, which is fine at single-user scale and
+    is what makes the FR-9 "already shown earlier in this session" exclusion a
+    plain query rather than something the caller has to carry.
+    """
+
+    __tablename__ = "recommendation"
+
+    # A surrogate key rather than the natural (session_id, generated_at,
+    # position). Two generates can share a `generated_at` when a caller passes
+    # the same `now` twice, which is not a real production state but is routine
+    # in tests, and a natural key would turn it into an integrity error instead
+    # of the harmless batch merge it is.
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    session_id: Mapped[str] = mapped_column(ForeignKey("session.id"), index=True)
+    release_id: Mapped[str] = mapped_column(String, index=True)
+    generated_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    # Draw order is the product: the weighted draw ranks the picks, and losing
+    # that ordering on the round trip would silently reduce the batch to a set.
+    position: Mapped[int]
+
+
+class _WindowRow(infra.Base):
+    """The recency window, as one row (RFC section 7).
+
+    "No row" means "use the code default", so a fresh database needs no seeding
+    step and a later change to `DEFAULT_WINDOW_DAYS` reaches every install that
+    never touched the setting.
+    """
+
+    __tablename__ = "recommendation_window"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    days: Mapped[int]
+
+
+_SINGLETON = 1
+
+
+class _Mapper:
+    """The only code in this module that touches the tables."""
+
+    def __init__(self, db: Session):
+        self._db = db
+
+    # --- reads -------------------------------------------------------------
+
+    def shown_release_ids(self, session_id: str) -> set[ReleaseId]:
+        """Every release this session has ever been shown (FR-9)."""
+        stmt = select(_RecommendationRow.release_id).where(
+            _RecommendationRow.session_id == session_id
+        )
+        return set(self._db.scalars(stmt))
+
+    def latest_batch(self, session_id: str) -> list[ReleaseId]:
+        """The active batch's release ids, in draw order.
+
+        The batch is the greatest `generated_at` for the session (RFC section
+        7), read as a scalar subquery so the two statements cannot disagree.
+        """
+        newest = (
+            select(func.max(_RecommendationRow.generated_at))
+            .where(_RecommendationRow.session_id == session_id)
+            .scalar_subquery()
+        )
+        stmt = (
+            select(_RecommendationRow.release_id)
+            .where(
+                _RecommendationRow.session_id == session_id,
+                _RecommendationRow.generated_at == newest,
+            )
+            .order_by(_RecommendationRow.position)
+        )
+        return list(self._db.scalars(stmt))
+
+    def window_days(self) -> int | None:
+        """The persisted override, or None when nothing has been set."""
+        row = self._db.get(_WindowRow, _SINGLETON)
+        return row.days if row else None
+
+    # --- writes ------------------------------------------------------------
+
+    def add_batch(
+        self, session_id: str, release_ids: list[ReleaseId], generated_at: datetime
+    ) -> None:
+        for position, rid in enumerate(release_ids):
+            self._db.add(
+                _RecommendationRow(
+                    session_id=session_id,
+                    release_id=rid,
+                    generated_at=generated_at,
+                    position=position,
+                )
+            )
+
+    def set_window_days(self, days: int) -> None:
+        row = self._db.get(_WindowRow, _SINGLETON) or _WindowRow(id=_SINGLETON)
+        row.days = days
+        self._db.add(row)
+
+
+# --- Public surface (architecture RFC section 5.4) -------------------------
+
+
+def generate(
+    db: Session,
+    session_id: str,
+    now: datetime,
+    rng: random.Random | None = None,
+) -> RecommendationResult:
+    """Draw a new batch of picks for this session's mood and persist it.
+
+    First-generate and regenerate are one act (FR-4, FR-9): a regenerate is just
+    a generate with more rows already on the table to exclude.
+
+    The empty outcome is a value, not an exception, because "no picks, and why"
+    is an expected state (FR-10). Genuine faults still raise: an unknown
+    `session_id` raises `sessions.UnknownSession`, and an unknown mood raises
+    `moods.UnknownMood`. The latter is deliberate. `sessions.start` cannot
+    validate the mood name (it imports no components), so a bad one survives
+    until it reaches here, and swallowing it into an `EmptyReason` would render
+    a typo as "nothing fits this mood" and hide the bug. Validating at the POST
+    boundary is the view layer's job.
+    """
+    session = sessions.get(db, session_id)
+    # Field-for-field identical types across the engine swap boundary, restated
+    # rather than shared so `picker` imports no component (RFC section 5.5).
+    mood_affinity = moods.affinity(db, session.mood)
+    affinity = picker.Affinity(
+        weights=mood_affinity.weights,
+        mapped_styles=mood_affinity.mapped_styles,
+    )
+
+    pool = records.recommendable(db)
+    recency = sessions.latest_plays(db)
+
+    candidates = [
+        picker.Candidate(
+            release_id=r.id,
+            styles=r.styles,
+            staleness=_staleness(now, recency.get(r.id)),
+        )
+        for r in pool
+    ]
+
+    # Fit is computed before exclusion and kept: it is what separates "nothing
+    # fits this mood" from "things fit, but you have played them all" (FR-10).
+    fit = picker.matching(candidates, affinity)
+
+    excluded = _excluded(db, session_id, now, recency)
+    surviving = [c for c in fit if c.release_id not in excluded]
+
+    drawn = picker.draw(surviving, COUNT, rng)
+
+    if not drawn:
+        return RecommendationResult(releases=[], reason=_reason(pool, fit))
+
+    _Mapper(db).add_batch(session_id, drawn, now)
+
+    # Built by filtering the pool already in hand, not by re-reading each id:
+    # the rows were loaded a few lines ago and nothing has changed since.
+    order = {rid: i for i, rid in enumerate(drawn)}
+    releases = sorted((r for r in pool if r.id in order), key=lambda r: order[r.id])
+    return RecommendationResult(releases=releases, reason=None)
+
+
+def _staleness(now: datetime, last_play: datetime | None) -> timedelta:
+    """How long since this release last played; `timedelta.max` if it never has.
+
+    An explicit branch on the never-played case, and deliberately so (RFC
+    section 5.4 step 3). The sentinel is only ever sorted on, never added to a
+    datetime, so it cannot overflow. Deriving the same ranking by subtracting a
+    sentinel *date* would break on the never-played path alone, which is the
+    common path on a freshly synced collection and so the one least likely to be
+    caught late.
+    """
+    if last_play is None:
+        return timedelta.max
+    return now - last_play
+
+
+def _excluded(
+    db: Session, session_id: str, now: datetime, recency: dict[ReleaseId, datetime]
+) -> set[ReleaseId]:
+    """Every release this batch may not contain.
+
+    Three sources, all of them exclusions rather than penalties, so "why wasn't
+    X picked" stays answerable:
+
+    - played inside the recency window, by any pressing (FR-4);
+    - already logged into this session (FR-5, and FR-9's "already played");
+    - already shown earlier in this session and passed over (FR-9).
+
+    The window comparison is `<=`, so a play exactly at the boundary is still
+    excluded: 2d23h ago is out at a 3-day window, 3d1h ago is eligible (RFC
+    section 6).
+    """
+    recent_window = window(db)
+    excluded = {rid for rid, last in recency.items() if now - last <= recent_window}
+    excluded |= {p.release_id for p in sessions.plays(db, session_id)}
+    excluded |= _Mapper(db).shown_release_ids(session_id)
+    return excluded
+
+
+def _reason(pool: list[records.Release], fit: list[picker.Candidate]) -> EmptyReason:
+    """Why an empty draw was empty (FR-10). Order matters.
+
+    Narrowest true statement first: an empty collection is not "nothing fits
+    this mood", and a fully-recent collection is not "nothing fits" either.
+    Testing fit before the pool would report NO_FIT for an empty collection,
+    which is technically true and useless.
+    """
+    if not pool:
+        return EmptyReason.NOTHING_AVAILABLE
+    if not fit:
+        return EmptyReason.NO_FIT
+    return EmptyReason.ALL_RECENT
+
+
+def active(db: Session, session_id: str) -> RecommendationResult:
+    """The batch currently showing, re-hydrated. Empty when none has been drawn.
+
+    Unlike `generate` this has no pool in hand, so it re-reads each release.
+    A release retired or removed since the batch was drawn simply drops out and
+    the batch shows fewer. That silent shrink is intended and is the only place
+    a persisted pick can vanish: the alternative is rendering a dead id, and the
+    user's next regenerate resolves it anyway.
+
+    Returns no `EmptyReason`. An empty result here means "nothing generated yet",
+    not FR-10's "nothing qualifies"; only `generate` can tell the difference, and
+    inventing a reason at this distance would be a guess.
+    """
+    ids = _Mapper(db).latest_batch(session_id)
+    hydrated = [records.get(db, rid) for rid in ids]
+    return RecommendationResult(releases=[r for r in hydrated if r is not None], reason=None)
+
+
+def window(db: Session) -> timedelta:
+    """The recency window (FR-14). `DEFAULT_WINDOW_DAYS` until someone sets one."""
+    days = _Mapper(db).window_days()
+    return timedelta(days=DEFAULT_WINDOW_DAYS if days is None else days)
+
+
+def set_window(db: Session, days: int) -> None:
+    """Persist the user-adjusted recency window (FR-14).
+
+    Zero is allowed and meaningful: it makes cross-session immediate repeats
+    possible, which is what zero means (RFC section 6). Intra-session repeats
+    are still blocked by session scope (FR-9). Negative is not, since it would
+    exclude nothing while reading as though it excluded something.
+    """
+    if not isinstance(days, int) or isinstance(days, bool):
+        raise InvalidWindow(f"window must be a whole number of days, got {days!r}")
+    if days < 0:
+        raise InvalidWindow(f"window cannot be negative, got {days}")
+    _Mapper(db).set_window_days(days)
