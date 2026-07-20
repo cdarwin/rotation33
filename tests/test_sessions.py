@@ -42,6 +42,25 @@ def test_start_creates_a_session_and_makes_it_current(db):
     assert sessions.current(db) == started
 
 
+def test_get_returns_a_session_by_id(db):
+    started = sessions.start(db, "Peak", T0)
+    assert sessions.get(db, started.id) == started
+
+
+def test_get_finds_a_session_that_is_no_longer_current(db):
+    """The whole reason `get` exists: the facade is keyed by id, not by "latest"."""
+    older = sessions.start(db, "Peak", T0)
+    sessions.start(db, "After Dark", at(hours=2))
+
+    assert sessions.current(db).id != older.id
+    assert sessions.get(db, older.id) == older
+
+
+def test_get_raises_on_an_unknown_id(db):
+    with pytest.raises(sessions.UnknownSession):
+        sessions.get(db, "no-such-session")
+
+
 def test_start_always_creates_a_new_session(db):
     first = sessions.start(db, "Peak", T0)
     second = sessions.start(db, "Peak", at(minutes=1))
