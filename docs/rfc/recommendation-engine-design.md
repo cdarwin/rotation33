@@ -110,6 +110,22 @@ Surfacing unmapped styles for review (FR-18) is derived on demand by the UI (a
 diff of the styles present in the collection against the affinity map keys), not
 written during sync.
 
+### Releases with no styles at all
+
+A release carrying an empty style list fits every mood, on the same principle:
+absence of classification is not evidence of a poor fit.
+
+This needs stating separately because it does not fall out of the unmapped rule.
+"Any style is unmapped" and "any style has positive affinity" are both vacuously
+false over an empty list, so the natural implementation of the two rules above
+excludes such a release from every mood, permanently, with nothing on screen to
+explain it. That is precisely the outcome FR-18 exists to prevent, arrived at by
+a different route.
+
+These are not hypothetical. Discogs leaves `styles` empty on some releases, and
+the captured collection fixture contains two — both owned pressings of the same
+album, which without this rule could never be recommended.
+
 ### Multi-style resolution
 
 A release's fit for a mood is the best of its styles for that mood
@@ -124,8 +140,12 @@ is still a great fit, and is not penalized for the unrelated tag (FR-8).
 1. Keep a candidate if it fits the mood. A release fits if its best-matching
    style has positive affinity for the mood (best-matching is the maximum mapped
    affinity across its styles), or if any of its styles is unmapped (FR-18,
-   eligible everywhere). "Fits at all" is the line; there is no separate tunable
-   threshold.
+   eligible everywhere), or if it carries no styles at all. "Fits at all" is the
+   line; there is no separate tunable threshold.
+
+   The empty-style-list case must be an explicit branch, not an emergent
+   property: both preceding conditions are vacuously false over an empty list,
+   so without it an unclassified release is excluded from every mood forever.
 
 `draw(candidates, count, rng)`, over the fit pool the facade passes in after its
 own recency and session exclusion:
@@ -164,12 +184,23 @@ unseeded `Random` covers it. `matching` and `draw` are tested independently.
   id, returns `[]` on an empty pool, and returns fewer than `count` without
   raising on a thin pool. For FR-18, a candidate whose only style is unmapped is
   never filtered out.
-- Statistical: build a fixed pool with a known staleness spread (one never-played
-  release and one played yesterday, both fitting the mood), run `draw` a few
-  hundred times with an unseeded RNG, and assert the never-played release is
-  drawn meaningfully more often than the recently-played one (for example more
-  than 2x). This is the test that catches an inverted-weight bug; the
-  deterministic and invariant tests would not.
+- Statistical: build a fixed pool with a known staleness spread, including a
+  never-played release and one played yesterday, both fitting the mood, run
+  `draw` a few hundred times with an unseeded RNG, and assert the never-played
+  release is drawn meaningfully more often than the recently-played one. This is
+  the test that catches an inverted-weight bug; the deterministic and invariant
+  tests would not.
+
+  The pool needs **at least five candidates** for that assertion to have room to
+  hold, and the reason is worth stating because the obvious two-release version
+  of this test cannot pass. Linear rank weighting (step 4 above) assigns weights
+  `1..N` by rank. Over a two-release pool the weights are exactly `2` and `1`, so
+  the stalest release is drawn first with probability `2/3` and the ratio
+  converges on exactly `2.0`. A "more than 2x" threshold is then unreachable at
+  any sample size: the test is not flaky, it is arithmetically impossible, and it
+  fails against a correct implementation. Widen the pool instead. At five
+  candidates the never-played release carries weight `5` against yesterday's `1`,
+  and the margin is comfortable.
 
 ## Explicitly deferred
 

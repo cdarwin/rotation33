@@ -388,8 +388,11 @@ class Affinity:                      # picker's own fit input, self-contained at
     mapped_styles: frozenset[str]
 
 def matching(candidates, affinity) -> list[Candidate]
-    # Fit filter: keep a candidate if any style is unmapped (FR-18) or its best
-    # mapped style has affinity > 0 (FR-8). No draw, no recency.
+    # Fit filter: keep a candidate if it has no styles at all, or any style is
+    # unmapped (FR-18), or its best mapped style has affinity > 0 (FR-8).
+    # No draw, no recency. The no-styles case is an explicit branch: both other
+    # conditions are vacuously false over an empty list, so omitting it excludes
+    # unclassified releases from every mood forever (engine RFC, fit filter).
 
 def draw(candidates, count, rng=None) -> list[ReleaseId]
     # Rank by staleness descending (never-played first), weight by rank position
