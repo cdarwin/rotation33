@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Log a play · Rotation33{% endblock %}
+
+{% block content %}
+  {% if not session %}
+    <section class="panel">
+      <p class="lede">No current session. <a href="{{ url_for('home') }}">Start one</a> to log plays.</p>
+    </section>
+  {% endif %}
+
+  {% if log %}
+    <section class="panel">
+      <h2>This session</h2>
+      <ul class="log-list">
+        {% for entry in log %}
+          <li class="log-entry">
+            <span>{{ entry.release.title if entry.release else entry.play.release_id }}</span>
+            <form method="post" action="{{ url_for('log_remove', play_id=entry.play.id) }}">
+              <input type="hidden" name="q" value="{{ query }}">
+              <button type="submit" class="button button-quiet">Remove</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  <section class="panel">
+    <h1>Log a play</h1>
+    <form method="get" action="{{ url_for('log_play') }}" class="search-form" role="search">
+      <input type="search" name="q" value="{{ query }}" placeholder="Search artist or title"
+             aria-label="Search the collection">
+      <button type="submit" class="button">Search</button>
+    </form>
+
+    {% if not albums %}
+      <p class="lede">{% if query %}Nothing matches “{{ query }}”.{% else %}No records yet.{% endif %}</p>
+    {% endif %}
+
+    <ul class="album-list">
+      {% for album in albums %}
+        <li class="album-row">
+          <div class="album-id">
+            <p class="album-title">{{ album.title }}</p>
+            <p class="album-artist">{{ album.artist }}</p>
+          </div>
+          <form method="post" action="{{ url_for('log_record') }}" class="log-form">
+            <input type="hidden" name="release_id" value="{{ album.id }}">
+            <input type="hidden" name="q" value="{{ query }}">
+            {% if album.instances | length > 1 %}
+              {# FR-12a: choose which copy when more than one is owned. #}
+              <div class="instance-choice">
+                {% for inst in album.instances %}
+                  <label>
+                    <input type="radio" name="instance_id" value="{{ inst.id }}"
+                           {% if loop.first %}checked{% endif %}>
+                    {{ inst.description or "Copy " ~ loop.index }}
+                  </label>
+                {% endfor %}
+              </div>
+            {% elif album.instances %}
+              <input type="hidden" name="instance_id" value="{{ album.instances[0].id }}">
+            {% endif %}
+            <button type="submit" class="button" {% if not session or not album.instances %}disabled{% endif %}>Log</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endblock %}
