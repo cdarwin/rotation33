@@ -25,10 +25,17 @@ from flask import Flask, g, render_template
 from sqlalchemy.orm import Session
 
 import infra
+import sync
 
 
 def create_app() -> Flask:
     infra.init_engine()
+
+    # A process killed mid-sync leaves a sync_run stuck at `running`, which the
+    # progress bar would poll forever. The in-process lock cannot cover a
+    # restart, so the factory reconciles orphans once at startup (RFC section 9).
+    with write() as startup:
+        sync.reconcile_orphaned_runs(startup)
 
     app = Flask(__name__)
 

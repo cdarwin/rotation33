@@ -18,7 +18,6 @@ import moods  # noqa: F401
 import recommendations  # noqa: F401
 import records  # noqa: F401
 import sessions  # noqa: F401
-
-# import sync      # noqa: F401
+import sync  # noqa: F401
 
 metadata = infra.Base.metadata
