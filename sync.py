@@ -138,10 +138,18 @@ def _artist(basic: dict) -> str:
 
 
 def _description(basic: dict) -> str | None:
-    return (
-        ", ".join(d for f in basic.get("formats") or [] for d in (f.get("descriptions") or []))
-        or None
-    )
+    """A label that tells copies of one album apart (only useful with >1 copy).
+
+    The distinguishing detail — colour, edition — lives in `formats[].text`. The
+    format `descriptions` ("LP", "Album") are the same across pressings and do
+    not tell two copies apart (research doc section 4). So prefer the free text,
+    and fall back to the descriptions only when a pressing carries none.
+    """
+    texts = [f["text"].strip() for f in basic.get("formats") or [] if (f.get("text") or "").strip()]
+    if texts:
+        return ", ".join(texts)
+    quals = ", ".join(d for f in basic.get("formats") or [] for d in (f.get("descriptions") or []))
+    return quals or None
 
 
 def _accumulate(grouped: dict[str, records.Release], item: dict) -> None:
