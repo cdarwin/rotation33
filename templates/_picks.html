@@ -1,6 +1,6 @@
-{% if result.releases %}
+{% if picks %}
   <ul class="pick-grid">
-    {% for release in result.releases %}
+    {% for release in picks %}
       <li class="pick-card">
         <div class="cover">
           {% if release.cover_url %}
@@ -15,6 +15,14 @@
           {% if release.styles %}
             <p class="pick-styles">{{ release.styles | join(', ') }}</p>
           {% endif %}
+          <div class="pick-actions">
+            {# Ephemeral pin: belongs to the header's #regen form via the form
+               attribute, so a checked pick is kept on the next regenerate. #}
+            <label class="keep-toggle">
+              <input type="checkbox" name="keep" value="{{ release.id }}" form="regen"> Keep
+            </label>
+            {% include "_log_control.html" %}
+          </div>
         </div>
       </li>
     {% endfor %}

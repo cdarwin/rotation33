@@ -206,6 +206,11 @@ def _open_run(total: int) -> int:
         return row.id
 
 
+def _set_total(run_id: int, total: int) -> None:
+    with infra.SessionLocal.begin() as db:
+        db.get(_SyncRunRow, run_id).total = total
+
+
 def _advance(run_id: int, processed: int) -> None:
     with infra.SessionLocal.begin() as db:
         db.get(_SyncRunRow, run_id).processed = processed
@@ -222,13 +227,21 @@ def _close_run(run_id: int, status: SyncStatus, error: str | None = None) -> Non
 # --- The sync itself -------------------------------------------------------
 
 
-def _run(collection, fetch=_http_get) -> None:
+def _run(collection, run_id: int | None = None, fetch=_http_get) -> None:
     """Walk the collection once. Commits collection data exactly once, at the end.
+
+    `run_id` is supplied by `trigger`, which opens the run row synchronously (so
+    the sync page can start polling immediately) before the total is known, then
+    lets this fill the total in. Called directly in tests with no `run_id`, it
+    opens its own run, so the total is set from the start.
 
     Exposed (underscored) for direct testing against a fixture-backed collection,
     without threads. `trigger` is the production entry point.
     """
-    run_id = _open_run(collection.total)
+    if run_id is None:
+        run_id = _open_run(collection.total)
+    else:
+        _set_total(run_id, collection.total)
     grouped: dict[str, records.Release] = {}
     present_ids: set[str] = set()
     processed = 0
@@ -272,20 +285,27 @@ _lock = threading.Lock()
 def trigger(client=None) -> bool:
     """Start a sync in a background thread (FR-1). Returns False, no-op, if one
     is already running: a non-blocking lock, since two threaded requests can
-    interleave between a DB check and a write (RFC section 9)."""
+    interleave between a DB check and a write (RFC section 9).
+
+    The run row is opened here, synchronously, before the thread is spawned, so a
+    page that renders right after this returns already sees a `running` row and
+    starts polling. The total is 0 until the thread learns it from the network."""
     if not _lock.acquire(blocking=False):
         return False
-    threading.Thread(target=_run_and_release, args=(client,), daemon=True).start()
+    run_id = _open_run(0)
+    threading.Thread(target=_run_and_release, args=(run_id, client), daemon=True).start()
     return True
 
 
-def _run_and_release(client) -> None:
+def _run_and_release(run_id: int, client) -> None:
     try:
-        _run(_make_collection(client))
-    except Exception:
-        log.exception(
-            "sync thread failed"
-        )  # already marked failed in _run; do not crash the thread
+        _run(_make_collection(client), run_id)
+    except Exception as exc:
+        # Backstop: catches a failure in _make_collection (before _run can mark
+        # anything) as well as anything _run re-raised. Idempotent with _run's
+        # own failure mark, so a double-mark is harmless. Never crash the thread.
+        _close_run(run_id, SyncStatus.FAILED, error=str(exc))
+        log.exception("sync thread failed")
     finally:
         _lock.release()
 

@@ -511,6 +511,11 @@ PRD:
 - FR-18 unmapped-style flagging is derived on demand, not written at sync.
 - The five moods are code constants; descriptions and the affinity map are
   persisted with code defaults, so FR-17 needs no seeding step.
+- Logging is search-only, not "browse or search" (FR-12a). The dedicated log
+  screen is folded into the session workspace (Section 10), where logging always
+  targets the current session; the workspace shows search results on submit
+  rather than the full collection. Browsing the full collection still exists on
+  the Condition screen. Recorded from real use; see the session-workspace spec.
 - Known risk, Discogs identity drift: master assignments change over time, so a
   no-master to has-master transition re-keys an album on a later sync and can
   split or merge its instances and recency history. Rare; accepted for the MVP.
@@ -620,15 +625,21 @@ and no build step (Section 2), that is hand-written CSS across three breakpoints
 for every screen, so it is scoped per screen rather than deferred to a styling
 pass at the end.
 
-- Home: pre-selects the time-appropriate mood (`moods.for_time(now)`); shows the
-  current session (if any) and the start-a-session control. An empty collection
-  special-cases to a "run a sync" prompt (FR-19).
-- Session: start (pick a mood, then `sessions.start` and
-  `recommendations.generate`); regenerate (htmx-swaps the picks panel); picks
-  rendered with cover art (FR-6); the FR-10 message when the result is empty.
-- Play logging: log a release into the session, choosing the instance when more
-  than one is owned (FR-12a); browse or search via `records`; remove a play from
-  the active session (FR-12b).
+- Home: the start-a-session control with the time-appropriate mood pre-selected
+  (`moods.for_time(now)`), or a "run a sync" prompt for an empty collection
+  (FR-19). When a session is already active it redirects to the session
+  workspace; `?new=1` overrides the redirect to start a fresh session.
+- Session (the workspace): the primary screen for an active session, holding the
+  recommendations, an on-demand search-to-log, and the plays logged this session
+  together, until a new session is explicitly started. Start picks a mood then
+  `recommendations.generate`; regenerate carries the pinned picks as `keep` and
+  htmx-swaps the recommendations panel (FR-9); picks render with cover art (FR-6)
+  and the FR-10 message when empty. A pick is logged in place, choosing the copy
+  inline when more than one is owned (FR-11, FR-12a). "Log something else"
+  searches `records` and shows results only on submit; a play is removed from the
+  active session (FR-12b). There is no separate log screen: logging always
+  targets the current session, which is the screen already in view. See
+  [`docs/superpowers/specs/2026-07-20-session-workspace-design.md`](/docs/superpowers/specs/2026-07-20-session-workspace-design.md).
 - Condition: toggle `is_playable` (FR-13).
 - Settings: recency window (FR-14, via `recommendations.window`/`set_window`);
   mood descriptions (FR-15); the affinity map as a validated JSON `<textarea>`

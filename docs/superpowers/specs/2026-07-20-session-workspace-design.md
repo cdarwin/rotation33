@@ -89,11 +89,13 @@ The engine and persistence are unchanged. Only the facade's `generate` grows a
 parameter.
 
 ```python
-def generate(db, session_id, now, keep=frozenset(), rng=None) -> RecommendationResult
+def generate(db, session_id, now, rng=None, keep=()) -> RecommendationResult
 ```
 
-`keep` is a set of release ids the caller wants carried into the new batch. The
-behaviour:
+`keep` is an **ordered** sequence of release ids the caller wants carried into
+the new batch — ordered, not a set, because the kept picks lead the batch in
+their display order. It follows `rng` in the signature so the existing positional
+`generate(db, id, now, rng)` call sites keep working unchanged. The behaviour:
 
 - The kept releases are those in `keep` that are still in the recommendable pool
   this generate builds; a pinned release that has since been retired or marked

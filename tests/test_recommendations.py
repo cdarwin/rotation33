@@ -462,3 +462,69 @@ def test_orm_rows_never_leave_the_module(db):
         assert not isinstance(value, recommendations._RecommendationRow)
         for r in value.releases:
             assert not hasattr(r, "__mapper__")
+
+
+# --- Keeping pinned picks across a regenerate (session workspace) -----------
+
+
+class TestKeep:
+    """generate(keep=...) carries chosen releases into the new batch and refills
+    the rest, without duplicating or resurrecting a pick that left the pool."""
+
+    def test_pinned_picks_survive_and_lead_the_batch(self, db):
+        collection(db, 8)
+        sid = a_session(db)
+        first = recommendations.generate(db, sid, NOW, rng=rng())
+        assert len(first.releases) == recommendations.COUNT
+
+        keep = [first.releases[0].id, first.releases[1].id]
+        second = recommendations.generate(db, sid, NOW, keep=keep, rng=rng())
+        ids = [r.id for r in second.releases]
+
+        assert ids[:2] == keep  # kept, in the order passed
+        assert len(second.releases) == recommendations.COUNT  # refilled to five
+
+    def test_unpinned_slots_are_replaced_with_fresh_picks(self, db):
+        collection(db, 8)
+        sid = a_session(db)
+        first = recommendations.generate(db, sid, NOW, rng=rng())
+        keep = [first.releases[0].id]
+
+        second = recommendations.generate(db, sid, NOW, keep=keep, rng=rng())
+        replaced = [r.id for r in second.releases[1:]]
+
+        # The refilled slots are none of the previously-shown picks (FR-9 still
+        # excludes shown), so they are genuinely new.
+        assert set(replaced).isdisjoint({r.id for r in first.releases})
+
+    def test_keep_never_duplicates(self, db):
+        collection(db, 8)
+        sid = a_session(db)
+        first = recommendations.generate(db, sid, NOW, rng=rng())
+        keep = [first.releases[0].id, first.releases[1].id]
+
+        second = recommendations.generate(db, sid, NOW, keep=keep, rng=rng())
+        ids = [r.id for r in second.releases]
+        assert len(ids) == len(set(ids))
+
+    def test_a_kept_release_that_left_the_pool_is_dropped(self, db):
+        collection(db, 8)
+        sid = a_session(db)
+        first = recommendations.generate(db, sid, NOW, rng=rng())
+        gone = first.releases[0].id
+
+        records.set_playable(db, f"i-{gone}", False)  # no longer recommendable
+        db.flush()
+
+        second = recommendations.generate(db, sid, NOW, keep=[gone], rng=rng())
+        assert gone not in {r.id for r in second.releases}
+
+    def test_empty_keep_matches_a_plain_regenerate(self, db):
+        collection(db, 10)
+        sid = a_session(db)
+        first = recommendations.generate(db, sid, NOW, rng=rng())
+
+        second = recommendations.generate(db, sid, NOW, keep=[], rng=rng())
+        # With no pins, a regenerate is exactly today's behaviour: it excludes
+        # everything already shown, so the two batches are disjoint.
+        assert {r.id for r in second.releases}.isdisjoint({r.id for r in first.releases})

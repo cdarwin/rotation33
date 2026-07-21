@@ -10,14 +10,6 @@
       <a class="button" href="{{ url_for('sync_page') }}">Run a sync</a>
     </section>
   {% else %}
-    {% if session %}
-      <section class="panel current-session">
-        <h2>Current session</h2>
-        <p><span class="mood-tag">{{ session.mood }}</span></p>
-        <a class="button" href="{{ url_for('session_view') }}">See picks</a>
-      </section>
-    {% endif %}
-
     <section class="panel">
       <h1>Start a session</h1>
       <form method="post" action="{{ url_for('session_start') }}" class="start-form">

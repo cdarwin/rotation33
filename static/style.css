@@ -262,6 +262,46 @@ label {
   flex-wrap: wrap;
 }
 
+.session-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.pick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.keep-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-dim);
+}
+
+/* Native disclosure for the inline copy picker: the summary is styled as a
+   button, and the marker is dropped so it reads as one. */
+.copy-picker > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.copy-picker > summary::-webkit-details-marker {
+  display: none;
+}
+.copy-picker[open] > summary {
+  margin-bottom: var(--space-2);
+}
+.copy-picker .instance-choice {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
 .pick-grid {
   list-style: none;
   margin: 0;
