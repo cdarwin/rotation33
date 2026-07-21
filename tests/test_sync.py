@@ -103,6 +103,16 @@ class TestMapping:
         with read() as s:
             assert records.get(s, VINYL_PLUS_CD) is not None
 
+    def test_instance_descriptions_distinguish_copies_of_one_album(self, engine, read):
+        # The two Mutiny pressings differ by colour, which lives in formats[].text,
+        # not in the descriptions ("LP", "Album") that are the same on both.
+        sync._run(FakeCollection(items()), fetch=_noop_fetch)
+        with read() as s:
+            descriptions = {i.description for i in records.get(s, MUTINY).instances}
+        assert any(d and "Red Translucent" in d for d in descriptions)
+        assert any(d and "Orange Translucent" in d for d in descriptions)
+        assert len(descriptions) == 2  # the copies are labelled differently
+
     def test_no_master_items_fall_back_to_r_release_id(self, engine, read):
         sync._run(FakeCollection(items()), fetch=_noop_fetch)
         with read() as s:
