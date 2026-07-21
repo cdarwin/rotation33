@@ -1,0 +1,28 @@
+# Deploy variant: pull the published image instead of building locally.
+#
+# For a self-hosted / Ansible pipeline. Pin `image` to whatever tag you deploy:
+#   - :latest        the newest push to master
+#   - :0.1.0         a released version (once you cut git tags)
+#   - :sha-<sha>     an exact immutable build
+#
+#   DISCOGS_TOKEN=... DISCOGS_USERNAME=... TZ=... \
+#     docker compose -f docker-compose.deploy.yml up -d
+#
+# The named volume holds the SQLite file and covers/, so a volume snapshot is the
+# whole backup.
+services:
+  app:
+    image: ghcr.io/cdarwin/rotation33:latest
+    ports:
+      - "8000:8000"
+    environment:
+      DATA_DIR: /data
+      TZ: ${TZ:-UTC}
+      DISCOGS_TOKEN: ${DISCOGS_TOKEN:-}
+      DISCOGS_USERNAME: ${DISCOGS_USERNAME:-}
+    volumes:
+      - rotation33-data:/data
+    restart: unless-stopped
+
+volumes:
+  rotation33-data:
