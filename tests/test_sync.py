@@ -200,17 +200,45 @@ class TestGuardAndRecovery:
         finally:
             sync._lock.release()
 
-    def test_a_thread_that_raises_before_running_still_releases_the_lock(self, monkeypatch):
+    def test_a_thread_that_raises_before_running_still_releases_the_lock(self, engine, monkeypatch):
         def explode(_client):
             raise Boom("could not reach discogs")
 
         monkeypatch.setattr(sync, "_make_collection", explode)
+        run_id = sync._open_run(0)
         sync._lock.acquire()  # trigger would have taken it before spawning
 
-        sync._run_and_release(None)  # must not propagate, must release in finally
+        sync._run_and_release(run_id, None)  # must not propagate, must release in finally
 
         assert sync._lock.acquire(blocking=False), "lock was stranded"
         sync._lock.release()
+        with infra.SessionLocal() as s:
+            assert sync.latest(s).status is sync.SyncStatus.FAILED  # marked, not left running
+
+    def test_trigger_creates_a_visible_running_row_before_the_thread_works(self, engine):
+        # The regression guard: the run row must exist and read `running` the
+        # instant trigger() returns, before the background thread does its
+        # network fetch. Otherwise the sync page renders "never synced" and never
+        # starts polling.
+        import threading
+
+        release_it = threading.Event()
+
+        def stall(run_id, client):
+            release_it.wait(5)  # hold the thread so it does no real work
+            sync._lock.release()
+
+        original = sync._run_and_release
+        sync._run_and_release = stall
+        try:
+            assert sync.trigger() is True
+            with infra.SessionLocal() as s:
+                run = sync.latest(s)
+                assert run is not None, "no run row after trigger returned"
+                assert run.status is sync.SyncStatus.RUNNING
+        finally:
+            release_it.set()
+            sync._run_and_release = original
 
     def test_a_run_left_running_by_a_crash_is_reconciled_on_startup(self, engine, read):
         with infra.SessionLocal.begin() as s:

@@ -2,24 +2,73 @@
 {% block title %}Session · Rotation33{% endblock %}
 
 {% block content %}
-  {% if session %}
-    <section class="panel session-head">
-      <div>
-        <h1>Session</h1>
-        <p><span class="mood-tag">{{ session.mood }}</span></p>
-      </div>
-      {# FR-9: regenerate swaps only the picks panel back in. #}
-      <button class="button" hx-post="{{ url_for('session_regenerate') }}"
-              hx-target="#picks" hx-swap="innerHTML">Regenerate</button>
-    </section>
+  <section class="panel session-head">
+    <div>
+      <h1>Session</h1>
+      <p><span class="mood-tag">{{ session.mood }}</span></p>
+    </div>
+    <div class="session-actions">
+      {# FR-9: regenerate carries the pinned picks (the checked "keep" boxes,
+         which belong to this form via their form="regen" attribute) and swaps
+         only the recommendations panel back in. #}
+      <form id="regen" hx-post="{{ url_for('session_regenerate') }}"
+            hx-target="#picks" hx-swap="innerHTML">
+        <button type="submit" class="button">Regenerate unpinned</button>
+      </form>
+      <a class="button button-quiet" href="{{ url_for('home', new=1) }}">Start a new session</a>
+    </div>
+  </section>
 
+  <section class="panel">
+    <h2>Recommendations</h2>
     <div id="picks">
       {% include "_picks.html" %}
     </div>
-  {% else %}
-    <section class="panel">
-      <p class="lede">No session yet.</p>
-      <a class="button" href="{{ url_for('home') }}">Start one</a>
-    </section>
-  {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Log something else</h2>
+    <form method="get" action="{{ url_for('session_view') }}" class="search-form" role="search">
+      <input type="search" name="q" value="{{ query }}" placeholder="Search artist or title"
+             aria-label="Search the collection">
+      <button type="submit" class="button">Search</button>
+    </form>
+
+    {% if results is not none %}
+      {% if results %}
+        <ul class="album-list">
+          {% for release in results %}
+            <li class="album-row">
+              <div class="album-id">
+                <p class="album-title">{{ release.title }}</p>
+                <p class="album-artist">{{ release.artist }}</p>
+              </div>
+              {% include "_log_control.html" %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="lede">Nothing matches “{{ query }}”.</p>
+      {% endif %}
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Logged this session</h2>
+    {% if log %}
+      <ul class="log-list">
+        {% for entry in log %}
+          <li class="log-entry">
+            <span>{{ entry.release.title if entry.release else entry.play.release_id }}</span>
+            <form method="post" action="{{ url_for('session_remove', play_id=entry.play.id) }}">
+              <input type="hidden" name="q" value="{{ query }}">
+              <button type="submit" class="button button-quiet">Remove</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="lede">Nothing logged yet.</p>
+    {% endif %}
+  </section>
 {% endblock %}

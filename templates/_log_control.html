@@ -1,0 +1,28 @@
+{# Log a release into the current session. Shared by the recommendation cards
+   and the search results. A single-copy release logs in one click; a release
+   with more than one owned copy expands a native disclosure to pick the copy,
+   so the choice never leaves the workspace (FR-12a). Needs no JavaScript. #}
+<form method="post" action="{{ url_for('session_log') }}" class="log-form">
+  <input type="hidden" name="release_id" value="{{ release.id }}">
+  <input type="hidden" name="q" value="{{ query | default('') }}">
+  {% if release.instances | length > 1 %}
+    <details class="copy-picker">
+      <summary class="button">Log…</summary>
+      <div class="instance-choice">
+        {% for inst in release.instances %}
+          <label>
+            <input type="radio" name="instance_id" value="{{ inst.id }}"
+                   {% if loop.first %}checked{% endif %}>
+            {{ inst.description or "Copy " ~ loop.index }}
+          </label>
+        {% endfor %}
+        <button type="submit" class="button">Log this copy</button>
+      </div>
+    </details>
+  {% elif release.instances %}
+    <input type="hidden" name="instance_id" value="{{ release.instances[0].id }}">
+    <button type="submit" class="button">Log</button>
+  {% else %}
+    <button type="button" class="button" disabled>Log</button>
+  {% endif %}
+</form>

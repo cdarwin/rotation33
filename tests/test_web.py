@@ -79,7 +79,7 @@ def test_home_offers_the_moods_with_one_preselected(client):
     assert b"checked" in page.data  # FR-3: a mood is pre-selected
 
 
-# --- Session (FR-4, FR-6, FR-9, FR-10) --------------------------------------
+# --- The session workspace (FR-4, FR-6, FR-9, FR-10) ------------------------
 
 
 def test_start_session_then_see_picks(client):
@@ -90,6 +90,26 @@ def test_start_session_then_see_picks(client):
     page = client.get("/session")
     assert page.status_code == 200
     assert b"pick-card" in page.data  # FR-4: picks are rendered
+    assert b"Log something else" in page.data  # search-to-log folded in
+    assert b"Logged this session" in page.data  # the session log lives here too
+
+
+def test_home_redirects_to_the_workspace_when_a_session_is_active(client):
+    _seed_collection()
+    client.post("/session/start", data={"mood": moods.NAMES[0]})
+
+    home = client.get("/")
+    assert home.status_code == 302
+    assert home.headers["Location"].endswith("/session")
+
+
+def test_new_query_forces_the_start_form_despite_an_active_session(client):
+    _seed_collection()
+    client.post("/session/start", data={"mood": moods.NAMES[0]})
+
+    page = client.get("/?new=1")
+    assert page.status_code == 200
+    assert b"Start a session" in page.data  # the mood picker, not a redirect
 
 
 def test_regenerate_returns_only_the_picks_fragment(client):
@@ -103,6 +123,19 @@ def test_regenerate_returns_only_the_picks_fragment(client):
     assert b"pick-card" in fragment.data or b"empty-reason" in fragment.data
 
 
+def test_regenerate_keeps_the_pinned_picks(client):
+    _seed_collection(8)
+    client.post("/session/start", data={"mood": moods.NAMES[0]})
+    with infra.SessionLocal() as db:
+        sid = sessions.current(db).id
+        pinned = recommendations.active(db, sid).releases[0].id
+
+    fragment = client.post("/session/regenerate", data={"keep": [pinned]})
+    assert pinned.encode() in fragment.data  # the pin survived
+    with infra.SessionLocal() as db:
+        assert pinned in {r.id for r in recommendations.active(db, sid).releases}
+
+
 def test_start_session_rejects_an_unknown_mood(client):
     _seed_collection()
     response = client.post("/session/start", data={"mood": "Nonsense"}, follow_redirects=True)
@@ -110,43 +143,65 @@ def test_start_session_rejects_an_unknown_mood(client):
     assert b"Pick a mood" in response.data
 
 
-# --- Log play (FR-11, FR-12, FR-12a, FR-12b) --------------------------------
+# --- Logging inside the workspace (FR-11, FR-12a, FR-12b) -------------------
 
 
-def test_log_a_play_then_remove_it(client):
+def test_log_a_pick_then_remove_it(client):
     _seed_collection()
     client.post("/session/start", data={"mood": moods.NAMES[0]})
 
     logged = client.post(
-        "/log/play", data={"instance_id": "inst0", "release_id": "m2000"}, follow_redirects=True
+        "/session/log", data={"instance_id": "inst0", "release_id": "m2000"}, follow_redirects=True
     )
     assert logged.status_code == 200
 
     with infra.SessionLocal() as db:
-        current = sessions.current(db)
-        plays = sessions.plays(db, current.id)
+        plays = sessions.plays(db, sessions.current(db).id)
         assert len(plays) == 1
         play_id = plays[0].id
 
-    client.post(f"/log/remove/{play_id}", follow_redirects=True)
+    client.post(f"/session/remove/{play_id}", follow_redirects=True)
     with infra.SessionLocal() as db:
         assert sessions.plays(db, sessions.current(db).id) == []
 
 
-def test_search_narrows_the_log_list(client):
-    _seed_collection()
-    page = client.get("/log?q=Album 1")
-    assert page.status_code == 200
-    assert b"Album 1" in page.data
-    assert b"Album 2" not in page.data
+def test_a_logged_pick_leaves_the_recommendations(client):
+    _seed_collection(8)
+    client.post("/session/start", data={"mood": moods.NAMES[0]})
+    with infra.SessionLocal() as db:
+        sid = sessions.current(db).id
+        pick = recommendations.active(db, sid).releases[0]
+
+    client.post("/session/log", data={"instance_id": pick.instances[0].id, "release_id": pick.id})
+
+    page = client.get("/session")
+    # The played pick is gone from the recommendations panel (which ends where
+    # the search section begins) and now shows under the session log instead.
+    picks_html = page.data.split(b"Log something else")[0]
+    assert pick.id.encode() not in picks_html
 
 
-def test_logging_without_a_session_is_refused(client):
+def _search_section(data: bytes) -> bytes:
+    """The 'Log something else' panel only, between it and the session log, so an
+    album title that also happens to be a current recommendation is not counted."""
+    return data.split(b"Log something else", 1)[1].split(b"Logged this session", 1)[0]
+
+
+def test_search_shows_results_only_after_a_query(client):
     _seed_collection()
-    response = client.post(
-        "/log/play", data={"instance_id": "inst0", "release_id": "m2000"}, follow_redirects=True
-    )
-    assert b"Start a session" in response.data
+    client.post("/session/start", data={"mood": moods.NAMES[0]})
+
+    bare = client.get("/session")
+    assert b"album-row" not in _search_section(bare.data)  # no default full list
+
+    searched = client.get("/session?q=Album 1")
+    section = _search_section(searched.data)
+    assert b"Album 1" in section
+    assert b"Album 2" not in section
+
+
+def test_the_old_log_screen_is_gone(client):
+    assert client.get("/log").status_code == 404
 
 
 # --- Condition (FR-13) ------------------------------------------------------

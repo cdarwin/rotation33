@@ -19,6 +19,7 @@ in the public functions, and nothing commits. The caller owns the transaction.
 from __future__ import annotations
 
 import random
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
@@ -192,11 +193,20 @@ def generate(
     session_id: str,
     now: datetime,
     rng: random.Random | None = None,
+    keep: Sequence[ReleaseId] = (),
 ) -> RecommendationResult:
     """Draw a new batch of picks for this session's mood and persist it.
 
     First-generate and regenerate are one act (FR-4, FR-9): a regenerate is just
     a generate with more rows already on the table to exclude.
+
+    `keep` carries pinned picks from the current batch into the new one, so a
+    regenerate reshuffles only the unpinned slots (the session workspace). A kept
+    release still in the recommendable pool leads the new batch, in the order
+    passed, which is its display order; the draw fills the remaining slots and
+    excludes the kept ids so it never duplicates one. A kept release that has
+    since left the pool (retired, marked not-playable) is dropped, exactly as
+    `active` drops a vanished pick.
 
     The empty outcome is a value, not an exception, because "no picks, and why"
     is an expected state (FR-10). Genuine faults still raise: an unknown
@@ -218,6 +228,14 @@ def generate(
 
     pool = records.recommendable(db)
     recency = sessions.latest_plays(db)
+    pool_ids = {r.id for r in pool}
+
+    # Kept picks, filtered to those still recommendable and de-duplicated while
+    # preserving the order they were passed.
+    kept: list[ReleaseId] = []
+    for rid in keep:
+        if rid in pool_ids and rid not in kept:
+            kept.append(rid)
 
     candidates = [
         picker.Candidate(
@@ -232,19 +250,21 @@ def generate(
     # fits this mood" from "things fit, but you have played them all" (FR-10).
     fit = picker.matching(candidates, affinity)
 
-    excluded = _excluded(db, session_id, now, recency)
+    # The kept ids join the exclusion set so the draw cannot redraw one.
+    excluded = _excluded(db, session_id, now, recency) | set(kept)
     surviving = [c for c in fit if c.release_id not in excluded]
 
-    drawn = picker.draw(surviving, COUNT, rng)
+    drawn = picker.draw(surviving, COUNT - len(kept), rng)
+    batch = kept + drawn  # kept lead in display order, fresh draws follow
 
-    if not drawn:
+    if not batch:
         return RecommendationResult(releases=[], reason=_reason(pool, fit))
 
-    _Mapper(db).add_batch(session_id, drawn, now)
+    _Mapper(db).add_batch(session_id, batch, now)
 
     # Built by filtering the pool already in hand, not by re-reading each id:
     # the rows were loaded a few lines ago and nothing has changed since.
-    order = {rid: i for i, rid in enumerate(drawn)}
+    order = {rid: i for i, rid in enumerate(batch)}
     releases = sorted((r for r in pool if r.id in order), key=lambda r: order[r.id])
     return RecommendationResult(releases=releases, reason=None)
 

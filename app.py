@@ -18,6 +18,7 @@ from contextlib import AbstractContextManager
 
 from flask import (
     Flask,
+    Response,
     abort,
     flash,
     g,
@@ -70,15 +71,17 @@ def create_app() -> Flask:
     # --- Home -------------------------------------------------------------
 
     @app.route("/")
-    def home() -> str:
-        now = infra.now()
+    def home() -> str | Response:
+        # A live session sends you to its workspace; ?new=1 forces the start form
+        # anyway, which is what the workspace's "Start a new session" links to.
+        if sessions.current(db()) is not None and not request.args.get("new"):
+            return redirect(url_for("session_view"))
         return render_template(
             "home.html",
             active_nav="home",
-            current=sessions.current(db()),
             collection_empty=not records.browse(db()),
             moods=moods.choices(db()),
-            suggested_mood=moods.for_time(now),
+            suggested_mood=moods.for_time(infra.now()),
         )
 
     @app.post("/session/start")
@@ -86,28 +89,30 @@ def create_app() -> Flask:
         mood = request.form.get("mood", "")
         if mood not in moods.NAMES:
             flash("Pick a mood to start a session.")
-            return redirect(url_for("home"))
+            return redirect(url_for("home", new=1))
         with write() as tx:
             session = sessions.start(tx, mood, infra.now())
             recommendations.generate(tx, session.id, infra.now())
         return redirect(url_for("session_view"))
 
-    # --- Session ----------------------------------------------------------
+    # --- Session workspace ------------------------------------------------
 
     @app.route("/session")
-    def session_view() -> str:
+    def session_view() -> str | Response:
         session = sessions.current(db())
-        result = (
-            recommendations.active(db(), session.id)
-            if session
-            else recommendations.RecommendationResult(releases=[])
-        )
+        if session is None:
+            return redirect(url_for("home"))
+        query = request.args.get("q", "").strip()
         return render_template(
             "session.html",
             active_nav="home",
             session=session,
-            result=result,
-            empty_message=_empty_message(result.reason),
+            picks=_current_picks(db(), session),
+            empty_message=_empty_message(recommendations.active(db(), session.id).reason),
+            query=query,
+            # Search shows results only on submit; no default full-collection list.
+            results=records.search(db(), query) if query else None,
+            log=_session_log(db(), session),
         )
 
     @app.post("/session/regenerate")
@@ -115,48 +120,39 @@ def create_app() -> Flask:
         session = sessions.current(db())
         if session is None:
             abort(409, "No current session.")
+        keep = request.form.getlist("keep")  # release ids the user pinned
         with write() as tx:
-            recommendations.generate(tx, session.id, infra.now())
-        # htmx swaps just the picks panel back in (FR-9).
-        result = recommendations.active(db(), session.id)
+            recommendations.generate(tx, session.id, infra.now(), keep=keep)
+        # htmx swaps just the recommendations panel back in (FR-9).
+        picks = _current_picks(db(), session)
         return render_template(
-            "_picks.html", result=result, empty_message=_empty_message(result.reason)
+            "_picks.html",
+            picks=picks,
+            empty_message=_empty_message(recommendations.active(db(), session.id).reason),
         )
 
-    # --- Log play ---------------------------------------------------------
-
-    @app.route("/log")
-    def log_play() -> str:
-        query = request.args.get("q", "").strip()
-        albums = records.search(db(), query) if query else records.browse(db())
-        session = sessions.current(db())
-        return render_template(
-            "log.html",
-            active_nav="log",
-            albums=albums,
-            query=query,
-            session=session,
-            log=_session_log(db(), session),
-        )
-
-    @app.post("/log/play")
-    def log_record():
+    @app.post("/session/log")
+    def session_log():
         session = sessions.current(db())
         if session is None:
             flash("Start a session before logging a play.")
             return redirect(url_for("home"))
-        instance_id = request.form.get("instance_id", "")
-        release_id = request.form.get("release_id", "")
         with write() as tx:
-            sessions.log_play(tx, session.id, instance_id, release_id, infra.now())
-        flash("Logged.")
-        return redirect(url_for("log_play", q=request.form.get("q", "")))
+            sessions.log_play(
+                tx,
+                session.id,
+                request.form.get("instance_id", ""),
+                request.form.get("release_id", ""),
+                infra.now(),
+            )
+        # Preserve the search so several records can be logged from one query.
+        return redirect(url_for("session_view", q=request.form.get("q", "")))
 
-    @app.post("/log/remove/<play_id>")
-    def log_remove(play_id: str):
+    @app.post("/session/remove/<play_id>")
+    def session_remove(play_id: str):
         with write() as tx:
             sessions.remove_play(tx, play_id)  # enforces current-session-only (FR-12b)
-        return redirect(url_for("log_play", q=request.form.get("q", "")))
+        return redirect(url_for("session_view", q=request.form.get("q", "")))
 
     # --- Condition --------------------------------------------------------
 
@@ -301,6 +297,18 @@ _EMPTY_MESSAGES = {
 
 def _empty_message(reason: recommendations.EmptyReason | None) -> str | None:
     return _EMPTY_MESSAGES.get(reason) if reason else None
+
+
+def _current_picks(session_db: Session, session: sessions.Session) -> list:
+    """The active batch minus anything already played this session (spec section 6).
+
+    A logged pick slides from Recommendations to the session log without a
+    regenerate, by being filtered out here. The stored batch is untouched, and
+    the facade's exclusion keeps it out of the next regenerate anyway.
+    """
+    played = {p.release_id for p in sessions.plays(session_db, session.id)}
+    active = recommendations.active(session_db, session.id)
+    return [r for r in active.releases if r.id not in played]
 
 
 def _session_log(session_db: Session, session: sessions.Session | None) -> list[dict]:
