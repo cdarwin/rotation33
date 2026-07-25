@@ -152,8 +152,13 @@ own recency and session exclusion:
 
 2. If the pool is empty, return `[]`. The facade, not the engine, decides whether
    empty means no-fit or all-recently-played (FR-10).
-3. Rank the pool by staleness descending; never-played (`timedelta.max`) ranks
-   first.
+3. Shuffle the pool, then rank it by staleness descending; never-played
+   (`timedelta.max`) ranks first. The shuffle is not decoration: rank position is
+   the draw weight and Python's sort is stable, so leaving equal-staleness
+   candidates in caller order silently converts that order into a weighting. On a
+   freshly synced collection every release is never-played and therefore tied,
+   and `records.recommendable` returns them sorted by artist, which weighted the
+   entire first-run experience toward the top of the alphabet by up to 69x.
 4. Weight each candidate by its rank position (1 = least stale, up to N = most
    stale): a linear rank weight, not exponential decay or bucketed tiers.
 5. Draw `count` distinct releases by weighted sampling without replacement: call

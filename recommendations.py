@@ -63,7 +63,8 @@ class EmptyReason(Enum):
 
     NOTHING_AVAILABLE = "nothing_available"  # no playable, non-retired records at all
     NO_FIT = "no_fit"  # records exist, none fit this mood
-    ALL_RECENT = "all_recent"  # fit exists, but all played recently or excluded
+    ALL_RECENT = "all_recent"  # fit exists, all of it played inside the recency window
+    SESSION_EXHAUSTED = "session_exhausted"  # fit exists and is not recent; this session saw it
 
 
 @dataclass(frozen=True)
@@ -99,11 +100,17 @@ class _RecommendationRow(infra.Base):
     # of the harmless batch merge it is.
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     session_id: Mapped[str] = mapped_column(ForeignKey("session.id"), index=True)
-    release_id: Mapped[str] = mapped_column(String, index=True)
+    # Null on a marker row, which is how a batch that drew nothing is recorded.
+    # Without one, an empty generate wrote no rows at all, so the next read found
+    # the *previous* batch and silently resurrected picks the user had already
+    # rejected, taking the FR-10 explanation with it.
+    release_id: Mapped[str | None] = mapped_column(String, index=True)
     generated_at: Mapped[datetime] = mapped_column(DateTime, index=True)
     # Draw order is the product: the weighted draw ranks the picks, and losing
     # that ordering on the round trip would silently reduce the batch to a set.
     position: Mapped[int]
+    # Set only on a marker row: why this batch came back empty (FR-10).
+    empty_reason: Mapped[str | None] = mapped_column(String, default=None)
 
 
 class _WindowRow(infra.Base):
@@ -132,17 +139,24 @@ class _Mapper:
     # --- reads -------------------------------------------------------------
 
     def shown_release_ids(self, session_id: str) -> set[ReleaseId]:
-        """Every release this session has ever been shown (FR-9)."""
+        """Every release this session has ever been shown (FR-9).
+
+        Marker rows carry no release and are skipped: an empty batch showed the
+        user nothing, so it cannot have used anything up.
+        """
         stmt = select(_RecommendationRow.release_id).where(
-            _RecommendationRow.session_id == session_id
+            _RecommendationRow.session_id == session_id,
+            _RecommendationRow.release_id.is_not(None),
         )
         return set(self._db.scalars(stmt))
 
-    def latest_batch(self, session_id: str) -> list[ReleaseId]:
-        """The active batch's release ids, in draw order.
+    def latest_batch(self, session_id: str) -> tuple[list[ReleaseId], EmptyReason | None]:
+        """The active batch: its release ids in draw order, and why it is empty.
 
         The batch is the greatest `generated_at` for the session (RFC section
-        7), read as a scalar subquery so the two statements cannot disagree.
+        7), read as a scalar subquery so the two statements cannot disagree. A
+        batch is either some picks or a single marker row carrying the reason;
+        never both.
         """
         newest = (
             select(func.max(_RecommendationRow.generated_at))
@@ -150,14 +164,19 @@ class _Mapper:
             .scalar_subquery()
         )
         stmt = (
-            select(_RecommendationRow.release_id)
+            select(_RecommendationRow)
             .where(
                 _RecommendationRow.session_id == session_id,
                 _RecommendationRow.generated_at == newest,
             )
             .order_by(_RecommendationRow.position)
         )
-        return list(self._db.scalars(stmt))
+        rows = list(self._db.scalars(stmt))
+        ids = [r.release_id for r in rows if r.release_id is not None]
+        reason = next(
+            (EmptyReason(r.empty_reason) for r in rows if r.empty_reason is not None), None
+        )
+        return ids, reason
 
     def window_days(self) -> int | None:
         """The persisted override, or None when nothing has been set."""
@@ -178,6 +197,23 @@ class _Mapper:
                     position=position,
                 )
             )
+
+    def add_empty_batch(self, session_id: str, generated_at: datetime, reason: EmptyReason) -> None:
+        """Record that a generate happened and drew nothing, and why.
+
+        One marker row, so the empty outcome is as durable as a batch of picks:
+        a page reload after an empty regenerate shows the explanation rather than
+        resurrecting the batch before it.
+        """
+        self._db.add(
+            _RecommendationRow(
+                session_id=session_id,
+                release_id=None,
+                generated_at=generated_at,
+                position=0,
+                empty_reason=reason.value,
+            )
+        )
 
     def set_window_days(self, days: int) -> None:
         row = self._db.get(_WindowRow, _SINGLETON) or _WindowRow(id=_SINGLETON)
@@ -251,14 +287,17 @@ def generate(
     fit = picker.matching(candidates, affinity)
 
     # The kept ids join the exclusion set so the draw cannot redraw one.
-    excluded = _excluded(db, session_id, now, recency) | set(kept)
+    recent, session_seen = _exclusions(db, session_id, now, recency)
+    excluded = recent | session_seen | set(kept)
     surviving = [c for c in fit if c.release_id not in excluded]
 
     drawn = picker.draw(surviving, COUNT - len(kept), rng)
     batch = kept + drawn  # kept lead in display order, fresh draws follow
 
     if not batch:
-        return RecommendationResult(releases=[], reason=_reason(pool, fit))
+        reason = _reason(pool, fit, recent)
+        _Mapper(db).add_empty_batch(session_id, now, reason)
+        return RecommendationResult(releases=[], reason=reason)
 
     _Mapper(db).add_batch(session_id, batch, now)
 
@@ -284,10 +323,10 @@ def _staleness(now: datetime, last_play: datetime | None) -> timedelta:
     return now - last_play
 
 
-def _excluded(
+def _exclusions(
     db: Session, session_id: str, now: datetime, recency: dict[ReleaseId, datetime]
-) -> set[ReleaseId]:
-    """Every release this batch may not contain.
+) -> tuple[set[ReleaseId], set[ReleaseId]]:
+    """Every release this batch may not contain, split by *why*.
 
     Three sources, all of them exclusions rather than penalties, so "why wasn't
     X picked" stays answerable:
@@ -296,48 +335,70 @@ def _excluded(
     - already logged into this session (FR-5, and FR-9's "already played");
     - already shown earlier in this session and passed over (FR-9).
 
+    Returned as two sets rather than one union because the split is exactly what
+    `_reason` needs. Folding them together made a session that had merely *seen*
+    everything report "played recently", which is a different sentence and, for
+    a user who has played nothing, a false one.
+
     The window comparison is `<=`, so a play exactly at the boundary is still
     excluded: 2d23h ago is out at a 3-day window, 3d1h ago is eligible (RFC
     section 6).
     """
     recent_window = window(db)
-    excluded = {rid for rid, last in recency.items() if now - last <= recent_window}
-    excluded |= {p.release_id for p in sessions.plays(db, session_id)}
-    excluded |= _Mapper(db).shown_release_ids(session_id)
-    return excluded
+    recent = {rid for rid, last in recency.items() if now - last <= recent_window}
+    session_seen = {p.release_id for p in sessions.plays(db, session_id)}
+    session_seen |= _Mapper(db).shown_release_ids(session_id)
+    return recent, session_seen
 
 
-def _reason(pool: list[records.Release], fit: list[picker.Candidate]) -> EmptyReason:
+def _reason(
+    pool: list[records.Release],
+    fit: list[picker.Candidate],
+    recent: set[ReleaseId],
+) -> EmptyReason:
     """Why an empty draw was empty (FR-10). Order matters.
 
     Narrowest true statement first: an empty collection is not "nothing fits
     this mood", and a fully-recent collection is not "nothing fits" either.
     Testing fit before the pool would report NO_FIT for an empty collection,
     which is technically true and useless.
+
+    The last two are the ones worth telling apart, because the remedy differs.
+    If everything that fits is inside the recency window, waiting or widening the
+    window helps. If it is not, and the draw still came back empty, then this
+    session has already been shown or played all of it: a new session helps and
+    the recency window is irrelevant.
     """
     if not pool:
         return EmptyReason.NOTHING_AVAILABLE
     if not fit:
         return EmptyReason.NO_FIT
-    return EmptyReason.ALL_RECENT
+    if all(c.release_id in recent for c in fit):
+        return EmptyReason.ALL_RECENT
+    return EmptyReason.SESSION_EXHAUSTED
 
 
 def active(db: Session, session_id: str) -> RecommendationResult:
     """The batch currently showing, re-hydrated. Empty when none has been drawn.
 
     Unlike `generate` this has no pool in hand, so it re-reads each release.
-    A release retired or removed since the batch was drawn simply drops out and
-    the batch shows fewer. That silent shrink is intended and is the only place
-    a persisted pick can vanish: the alternative is rendering a dead id, and the
-    user's next regenerate resolves it anyway.
+    A release removed, retired or marked unplayable since the batch was drawn
+    drops out and the batch shows fewer. That silent shrink is intended and is
+    the only place a persisted pick can vanish: the alternative is leaving a
+    record you have just sold sitting in the picks, and the user's next
+    regenerate resolves it anyway. `records.get` answers "does this id exist",
+    not "may it still be recommended", so the second question is asked
+    separately.
 
-    Returns no `EmptyReason`. An empty result here means "nothing generated yet",
-    not FR-10's "nothing qualifies"; only `generate` can tell the difference, and
-    inventing a reason at this distance would be a guess.
+    The `EmptyReason` is the one `generate` persisted with the batch, so an empty
+    outcome survives a page reload with its explanation attached. `None` here
+    means no batch has been generated for this session yet, which is a different
+    state from FR-10's "nothing qualifies" and reads as such: no message.
     """
-    ids = _Mapper(db).latest_batch(session_id)
+    ids, reason = _Mapper(db).latest_batch(session_id)
     hydrated = [records.get(db, rid) for rid in ids]
-    return RecommendationResult(releases=[r for r in hydrated if r is not None], reason=None)
+    releases = [r for r in hydrated if r is not None and records.is_recommendable(r)]
+    return RecommendationResult(releases=releases, reason=reason)
 
 
 def window(db: Session) -> timedelta:

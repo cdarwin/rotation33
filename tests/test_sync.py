@@ -9,6 +9,7 @@ so a stale read snapshot can never mask what sync actually committed.
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -29,6 +30,8 @@ MUTINY_VINYL = {"2124727382", "2124926800"}
 MUTINY_CD = "2124926875"
 VINYL_PLUS_CD = "m9000002"  # the hand-added multi-format edition
 NO_MASTER = ("r37907304", "r37109289")  # master_id: 0 falls back to r<release_id>
+
+NOW = datetime(2026, 7, 25, 10, 0)
 
 
 def items() -> list[dict]:
@@ -341,3 +344,79 @@ class TestCoverArt:
             assert sync.latest(s).status is sync.SyncStatus.COMPLETE  # sync still succeeds
             assert len(records.browse(s)) == VINYL_ALBUMS  # metadata still written
         assert not records.cover_file(MUTINY).exists()  # no file, old one would be kept
+
+
+# --- Cover downloads happen outside the write transaction ------------------
+
+
+def test_covers_are_fetched_only_after_the_collection_is_committed(engine, data_dir):
+    """The download loop must not run inside the data transaction.
+
+    SQLAlchemy autoflushes before a query, so the `db.get` inside
+    `records.upsert` flushes the previous album and the data session takes
+    SQLite's database-wide write lock on the very first release of a cold sync.
+    Downloading in that loop held the lock for the whole run (measured: 7.86s of
+    a 7.87s sync with 40ms stub downloads), and a concurrent log_play blew
+    through busy_timeout and got `database is locked`.
+
+    Asserting the ordering directly: by the time any cover is fetched, the rows
+    must already be visible to a separate session, which is only true after the
+    commit.
+    """
+    seen: list[bool] = []
+
+    def fetch(_url: str) -> bytes:
+        with infra.SessionLocal() as fresh:
+            seen.append(records.get(fresh, MUTINY) is not None)
+        return b"IMG"
+
+    sync._run(FakeCollection(items()), fetch=fetch)
+
+    assert seen, "no cover was fetched, so the ordering was never exercised"
+    assert all(seen), "a cover was downloaded before the collection data committed"
+
+
+def test_a_write_is_possible_while_covers_are_downloading(engine, data_dir):
+    """The daily-use path must survive a first sync.
+
+    A play logged mid-sync used to fail with OperationalError once the download
+    loop outlasted the 5s busy_timeout.
+    """
+    sync._run(FakeCollection(items()), fetch=_noop_fetch)
+    with infra.SessionLocal.begin() as db:
+        rel = records.recommendable(db)[0]
+        sid = sessions.start(db, "Peak", NOW).id
+        rid, iid = rel.id, rel.instances[0].id
+    for path in (data_dir / "covers").glob("*.jpg"):
+        path.unlink()
+
+    logged: list[str] = []
+
+    def fetch(_url: str) -> bytes:
+        if not logged:
+            with infra.SessionLocal.begin() as db:
+                sessions.log_play(db, sid, iid, rid, NOW)
+            logged.append("ok")
+        return b"IMG"
+
+    sync._run(FakeCollection(items()), fetch=fetch)
+
+    with infra.SessionLocal() as db:
+        assert len(sessions.plays(db, sid)) == 1
+
+
+def test_trigger_releases_the_lock_if_the_spawn_fails(engine, data_dir, monkeypatch):
+    """`_run_and_release`'s finally covers the thread body, not the spawn.
+
+    A failure between acquiring the lock and the thread starting would otherwise
+    strand it and kill sync for the life of the process.
+    """
+
+    def boom(*_args, **_kwargs):
+        raise RuntimeError("cannot spawn")
+
+    monkeypatch.setattr(sync.threading, "Thread", boom)
+    with pytest.raises(RuntimeError):
+        sync.trigger(client=object())
+
+    assert not sync._lock.locked()

@@ -13,7 +13,8 @@
 
     <ul class="album-list">
       {% for album in albums %}
-        {% for inst in album.instances %}
+        {# owned_instances: a sold copy has no condition left to manage. #}
+        {% for inst in album.owned_instances %}
           <li class="album-row">
             <div class="album-id">
               <p class="album-title">{{ album.title }}</p>

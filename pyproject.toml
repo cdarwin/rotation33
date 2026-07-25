@@ -30,6 +30,10 @@ packages = []
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# Ruff 0.16 began formatting fenced code blocks inside Markdown, which rewrites
+# the hand-aligned illustrative samples in the RFCs and fails `ruff format
+# --check .` on files nobody edited. The docs are prose, not source.
+extend-exclude = ["docs"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

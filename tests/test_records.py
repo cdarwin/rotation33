@@ -394,3 +394,83 @@ def test_domain_models_are_frozen(db):
 def test_the_instance_dataclass_carries_no_aggregate_foreign_key():
     """An Instance is always reached through its Release, so the FK is ORM-only."""
     assert "release_id" not in {f.name for f in dataclasses.fields(Instance)}
+
+
+# --- Owned copies vs the whole aggregate -----------------------------------
+
+
+class TestOwnedInstances:
+    """A confirmed retirement is gone from the shelf, so no screen may offer it.
+
+    `instances` stays complete, because a sold copy's play history still counts
+    (FR-2a). `owned_instances` is what a choice-of-copy control renders.
+    """
+
+    def test_owned_instances_drops_a_retired_copy(self):
+        rel = release(
+            "m1",
+            instances=(
+                instance("gone", status=RetirementStatus.RETIRED),
+                instance("here"),
+            ),
+        )
+
+        assert [i.id for i in rel.owned_instances] == ["here"]
+        assert len(rel.instances) == 2  # the aggregate is untouched
+
+    def test_owned_instances_keeps_a_not_playable_copy(self):
+        # FR-13a: damaged still means owned, and still loggable.
+        rel = release("m1", instances=(instance("warped", playable=False),))
+
+        assert [i.id for i in rel.owned_instances] == ["warped"]
+
+    def test_owned_instances_keeps_a_pending_copy(self):
+        # FR-2a excludes an instance only once the user confirms it.
+        rel = release("m1", instances=(instance("maybe", status=RetirementStatus.PENDING),))
+
+        assert [i.id for i in rel.owned_instances] == ["maybe"]
+
+
+class TestIsRecommendable:
+    """The predicate restates the mapper's WHERE clause, so pin them together."""
+
+    def test_it_agrees_with_the_recommendable_query(self, db):
+        records.upsert(db, release("m-ok", instances=(instance("i1"),)))
+        records.upsert(
+            db,
+            release("m-retired", instances=(instance("i2", status=RetirementStatus.RETIRED),)),
+        )
+        records.upsert(db, release("m-unplayable", instances=(instance("i3", playable=False),)))
+        records.upsert(
+            db,
+            release("m-pending", instances=(instance("i4", status=RetirementStatus.PENDING),)),
+        )
+        db.flush()
+
+        by_query = {r.id for r in records.recommendable(db)}
+        by_predicate = {r.id for r in records.browse(db) if records.is_recommendable(r)}
+
+        assert by_query == by_predicate
+        assert by_query == {"m-ok", "m-pending"}
+
+    def test_a_release_with_no_instances_is_not_recommendable(self):
+        assert not records.is_recommendable(release("m-empty"))
+
+
+def test_cover_url_survives_a_moved_data_dir(db, data_dir, monkeypatch, tmp_path):
+    """`cover_path` holds an absolute path built from DATA_DIR at sync time.
+
+    Trusting that column meant every cover silently vanished the day the volume
+    moved. The URL is derived from the release id instead.
+    """
+    records.upsert(db, release("m1", cover="https://img.example/a.jpg"))
+    db.flush()
+    records.cover_file("m1").write_bytes(b"IMG")
+    assert records.get(db, "m1").cover_url == "/covers/m1.jpg"
+
+    moved = tmp_path / "elsewhere"
+    (moved / "covers").mkdir(parents=True)
+    monkeypatch.setenv("DATA_DIR", str(moved))
+    records.cover_file("m1").write_bytes(b"IMG")  # same bytes, new volume
+
+    assert records.get(db, "m1").cover_url == "/covers/m1.jpg"

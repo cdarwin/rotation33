@@ -328,7 +328,8 @@ configurable recency window (FR-14).
 class EmptyReason(Enum):
     NOTHING_AVAILABLE = "nothing_available"  # no playable, non-retired records at all
     NO_FIT            = "no_fit"             # records exist, none fit this mood
-    ALL_RECENT        = "all_recent"         # fit exists, but all played recently or excluded
+    ALL_RECENT        = "all_recent"         # fit exists, all of it played inside the window
+    SESSION_EXHAUSTED = "session_exhausted"  # fit exists and is not recent; this session saw it
 
 @dataclass(frozen=True)
 class RecommendationResult:
@@ -371,7 +372,11 @@ The flow inside `generate`:
    recommendation rows) (FR-9).
 6. `drawn = picker.draw(surviving_fit, 5, rng)`, ordered by the weighted draw.
 7. if `drawn` is empty, choose the reason: pool empty gives `NOTHING_AVAILABLE`,
-   else fit empty gives `NO_FIT`, else `ALL_RECENT`.
+   else fit empty gives `NO_FIT`, else `ALL_RECENT` when every fitting release is
+   inside the recency window, else `SESSION_EXHAUSTED`. The last two are worth
+   telling apart because the remedy differs: waiting or widening the window helps
+   the first, and only a new session helps the second. Folding them together
+   reported "played recently" to a user who had played nothing.
 8. persist `drawn` as a new batch with a `position` per row (session_id,
    release_id, generated_at, position) so draw order survives. Build the result
    by filtering the in-hand `pool` to `drawn`, preserving order, with no re-`get`.
@@ -573,12 +578,28 @@ The thread:
    `basic_information`, no extra fetch), falling back to `r<release_id>` when
    `master_id` is `0` or absent, and upserts release metadata and instances via
    `records.upsert`. A release exists if it has at least one kept vinyl instance;
-4. downloads cover art to `DATA_DIR/covers` when the file is missing or its
-   `cover_source_url` changed (both cheap; the image URL is in the listing);
+4. notes which releases need cover art (the file is missing, or its
+   `cover_source_url` changed) without fetching any of it yet;
 5. calls `records.reconcile_retirements` once with every currently-present vinyl
    `instance_id`, inside the data transaction: absent-locally-present instances
    become `pending`, reappeared ones flip back to `active` (FR-2a);
-6. commits the data session once, then marks `sync_run` complete.
+6. commits the data session once;
+7. *then* downloads the noted cover art to `DATA_DIR/covers`, outside the
+   transaction, and marks `sync_run` complete.
+
+Step 7 is separated from step 4 deliberately, and the ordering is load bearing.
+SQLAlchemy autoflushes before a query, so the `db.get` inside `records.upsert`
+flushes the previous album and the data session takes SQLite's database-wide
+write lock on the very first release of a cold sync. Downloading inside that
+loop therefore held the write lock for the whole run rather than for the commit:
+measured at 7.86s of a 7.87s sync against the 72-release fixture with 40ms stub
+downloads, and at realistic network latency a concurrent `log_play` exhausted
+`busy_timeout` and failed with `database is locked`. A first sync is exactly when
+every cover is missing, so it was the first-run path that broke. Deferring is
+safe because covers are not collection data: `upsert` records `cover_path` inside
+the transaction and `records._served_url` renders from the file's existence, so a
+release whose art has not landed yet shows the placeholder rather than a broken
+image.
 
 Failure isolation (FR-2, FR-2a): metadata commit and retirement-flagging happen
 only after a complete, successful fetch, in the single data-session commit at
@@ -666,12 +687,20 @@ days).
 - SQLite writer contention: WAL allows concurrent readers but a single writer, so
   a request write (`log_play`) can collide with the sync thread's commit.
   `busy_timeout` (about 5 seconds) is set on every connection, so the loser waits
-  and retries rather than erroring, and the sync thread commits its collection
-  data once at the end, keeping the write window small. Its per-page progress
-  commits (Section 9) are single-row and brief, so they do not widen it
-  meaningfully. This holds only under a single WSGI worker
-  (Section 14); multiple workers would each have their own threads and no shared
-  guard.
+  and retries rather than erroring. What keeps that wait inside the timeout is
+  not the single commit by itself: the data session becomes a writer at its first
+  autoflush, not at `commit()`, so the write window is everything between that
+  flush and the commit. Keeping it short means keeping *network* out of it, which
+  is why cover art is fetched after the commit (Section 9). The per-page progress
+  commits are single-row, brief, and happen during the fetch while the data
+  session has issued no writes at all, so they never contend.
+  `busy_timeout` also does not cover every case: a session that reads and *then*
+  upgrades to a write gets `SQLITE_BUSY_SNAPSHOT` immediately, with no retry, if
+  another connection committed in between. The view layer therefore has an
+  `OperationalError` handler that rolls back, tells the user the database was
+  busy, and invites a retry, rather than showing a traceback. All of this holds
+  only under a single WSGI worker (Section 14); multiple workers would each have
+  their own threads and no shared guard.
 
 ## 13. Testing strategy
 

@@ -203,6 +203,29 @@ def _cache_cover(release: records.Release, fetch) -> None:
         log.warning("cover download failed for %s, keeping any existing file", release.id)
 
 
+def _cache_covers(releases: list[records.Release], fetch) -> None:
+    """Download every wanted cover, *after* the data transaction has committed.
+
+    This runs outside the transaction on purpose, and the ordering is load
+    bearing. SQLAlchemy autoflushes before a query, so on a first sync the
+    `db.get` inside `records.upsert` flushes the previous release and the data
+    session takes SQLite's database-wide write lock on the very first album.
+    Downloading inside that loop therefore held the write lock for the entire
+    run: measured at 7.86s of a 7.87s sync against the 72-release fixture with
+    40ms stub downloads, and over real network latency a concurrent `log_play`
+    blew through the 5s `busy_timeout` and returned `database is locked`. A
+    first sync is exactly when every cover is missing, so it was the first-run
+    path that broke.
+
+    Deferring is safe because the covers are not collection data: `upsert`
+    records `cover_path` during the transaction and `records._served_url` renders
+    from the file's existence, so a release whose art has not landed yet (or ever)
+    shows the placeholder rather than a broken image.
+    """
+    for release in releases:
+        _cache_cover(release, fetch)
+
+
 # --- Progress (the short-lived committing session, D8) ---------------------
 
 
@@ -253,6 +276,7 @@ def _run(collection, run_id: int | None = None, fetch=_http_get) -> None:
     grouped: dict[str, records.Release] = {}
     present_ids: set[str] = set()
     processed = 0
+    wanted_covers: list[records.Release] = []
 
     data = infra.SessionLocal()
     try:
@@ -270,7 +294,9 @@ def _run(collection, run_id: int | None = None, fetch=_http_get) -> None:
             stale_cover = existing is None or existing.cover_source_url != release.cover_source_url
             records.upsert(data, release)
             if release.cover_source_url and (stale_cover or not records.cover_file(rid).exists()):
-                _cache_cover(release, fetch)
+                # Noted, not fetched. See _cache_covers for why the download
+                # cannot happen here.
+                wanted_covers.append(release)
 
         # Only on a complete fetch, inside the one data transaction (RFC section 9).
         records.reconcile_retirements(data, present_ids)
@@ -279,10 +305,12 @@ def _run(collection, run_id: int | None = None, fetch=_http_get) -> None:
         data.rollback()
         _close_run(run_id, SyncStatus.FAILED, error=str(exc))
         raise
-    else:
-        _close_run(run_id, SyncStatus.COMPLETE)
     finally:
         data.close()
+
+    # After the commit, deliberately: see _cache_covers.
+    _cache_covers(wanted_covers, fetch)
+    _close_run(run_id, SyncStatus.COMPLETE)
 
 
 # --- Public surface --------------------------------------------------------
@@ -297,11 +325,20 @@ def trigger(client=None) -> bool:
 
     The run row is opened here, synchronously, before the thread is spawned, so a
     page that renders right after this returns already sees a `running` row and
-    starts polling. The total is 0 until the thread learns it from the network."""
+    starts polling. The total is 0 until the thread learns it from the network.
+
+    The spawn is guarded because `_run_and_release`'s `finally` only covers the
+    thread body: if `_open_run` or `Thread.start()` raised, nothing would ever
+    release the lock and sync would be dead for the life of the process, which is
+    the exact failure that `finally` exists to prevent."""
     if not _lock.acquire(blocking=False):
         return False
-    run_id = _open_run(0)
-    threading.Thread(target=_run_and_release, args=(run_id, client), daemon=True).start()
+    try:
+        run_id = _open_run(0)
+        threading.Thread(target=_run_and_release, args=(run_id, client), daemon=True).start()
+    except BaseException:
+        _lock.release()
+        raise
     return True
 
 

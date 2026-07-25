@@ -124,8 +124,10 @@ def test_regenerate_excludes_releases_already_played_this_session(db):
     assert first.releases[0].id not in {r.id for r in second.releases}
 
 
-def test_regenerating_until_exhaustion_ends_in_all_recent(db):
-    """The shown-set grows monotonically, so repeated regenerates must terminate."""
+def test_regenerating_until_exhaustion_ends_in_session_exhausted(db):
+    """The shown-set grows monotonically, so repeated regenerates must terminate.
+
+    Nothing is ever played here, so the reason must not blame recency."""
     collection(db, 7)
     sid = a_session(db)
 
@@ -138,7 +140,7 @@ def test_regenerating_until_exhaustion_ends_in_all_recent(db):
             break
 
     assert seen == {f"m{100 + i}" for i in range(7)}
-    assert recommendations.generate(db, sid, NOW, rng()).reason is EmptyReason.ALL_RECENT
+    assert recommendations.generate(db, sid, NOW, rng()).reason is EmptyReason.SESSION_EXHAUSTED
 
 
 def test_exclusion_is_scoped_to_its_own_session(db):
@@ -323,14 +325,19 @@ def test_all_recent_when_everything_that_fits_played_recently(db):
     assert result.reason is EmptyReason.ALL_RECENT
 
 
-def test_all_recent_when_everything_that_fits_was_shown_this_session(db):
-    """The exclusion source differs but the explanation is the same one."""
+def test_shown_this_session_is_not_reported_as_played_recently(db):
+    """The exclusion source differs, and so does the explanation.
+
+    Nothing has been played, so "everything was played recently" would be a
+    false sentence and would point the user at the recency window, which is not
+    the setting that would help.
+    """
     collection(db, 3)
     sid = a_session(db)
     recommendations.generate(db, sid, NOW, rng())
 
     result = recommendations.generate(db, sid, NOW, rng())
-    assert result.reason is EmptyReason.ALL_RECENT
+    assert result.reason is EmptyReason.SESSION_EXHAUSTED
 
 
 def test_the_three_reasons_are_distinguished_not_conflated(db):
@@ -528,3 +535,93 @@ class TestKeep:
         # With no pins, a regenerate is exactly today's behaviour: it excludes
         # everything already shown, so the two batches are disjoint.
         assert {r.id for r in second.releases}.isdisjoint({r.id for r in first.releases})
+
+
+# --- An empty batch is a batch ---------------------------------------------
+
+
+def test_an_empty_generate_does_not_resurrect_the_previous_batch(db):
+    """An empty generate used to write no rows at all.
+
+    `active` then found the *previous* batch and showed picks the user had
+    already rejected, with the FR-10 explanation gone. A page reload after an
+    empty regenerate must show the explanation, not stale picks.
+    """
+    collection(db, 3)
+    sid = a_session(db)
+    first = recommendations.generate(db, sid, NOW, rng())
+    assert first.releases
+
+    empty = recommendations.generate(db, sid, NOW + timedelta(minutes=1), rng())
+    assert empty.releases == []
+
+    after = recommendations.active(db, sid)
+    assert after.releases == []
+    assert after.reason is empty.reason
+
+
+def test_active_carries_the_reason_that_generate_persisted(db):
+    """FR-10's "why" has to survive the round trip, or nothing renders it."""
+    sid = a_session(db, moods.HEADS_DOWN)
+
+    generated = recommendations.generate(db, sid, NOW, rng())
+    assert generated.reason is EmptyReason.NOTHING_AVAILABLE
+
+    assert recommendations.active(db, sid).reason is EmptyReason.NOTHING_AVAILABLE
+
+
+def test_active_has_no_reason_before_anything_is_generated(db):
+    """ "Nothing generated yet" is not FR-10's "nothing qualifies"."""
+    sid = a_session(db)
+
+    result = recommendations.active(db, sid)
+
+    assert result.releases == []
+    assert result.reason is None
+
+
+def test_a_marker_row_does_not_count_as_a_release_shown(db):
+    """An empty batch showed the user nothing, so it used nothing up (FR-9)."""
+    collection(db, 3)
+    sid = a_session(db)
+    recommendations.generate(db, sid, NOW, rng())  # shows all 3
+    recommendations.generate(db, sid, NOW + timedelta(minutes=1), rng())  # empty marker
+
+    # A second session sees the whole collection: the marker is not an exclusion.
+    other = sessions.start(db, moods.HEADS_DOWN, NOW + timedelta(hours=1)).id
+    assert len(recommendations.generate(db, other, NOW + timedelta(hours=1), rng()).releases) == 3
+
+
+# --- active() drops picks that stopped qualifying ---------------------------
+
+
+def test_active_drops_a_pick_whose_copies_were_all_retired(db):
+    """`records.get` answers "does this exist", not "may it be recommended".
+
+    Confirming a sale left the sold record sitting in the picks until the next
+    regenerate.
+    """
+    collection(db, 3)
+    sid = a_session(db)
+    shown = recommendations.generate(db, sid, NOW, rng()).releases
+    victim = shown[0]
+
+    records.confirm_retirement(db, [i.id for i in victim.instances])
+    db.flush()
+
+    remaining = {r.id for r in recommendations.active(db, sid).releases}
+    assert victim.id not in remaining
+    assert len(remaining) == len(shown) - 1
+
+
+def test_active_drops_a_pick_marked_not_playable(db):
+    collection(db, 3)
+    sid = a_session(db)
+    shown = recommendations.generate(db, sid, NOW, rng()).releases
+    victim = shown[0]
+
+    for inst in victim.instances:
+        records.set_playable(db, inst.id, False)
+    db.flush()
+
+    assert victim.id not in {r.id for r in recommendations.active(db, sid).releases}

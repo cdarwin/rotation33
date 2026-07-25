@@ -339,3 +339,85 @@ def test_cover_is_served_from_the_data_volume(client, data_dir):
 
 def test_a_missing_cover_is_a_404(client):
     assert client.get("/covers/nope.jpg").status_code == 404
+
+
+# --- A sold copy is never offered ------------------------------------------
+
+
+def test_a_retired_copy_is_not_offered_in_the_copy_picker(client):
+    """The picker iterated the whole aggregate and pre-selected loop.first, so a
+    copy confirmed as sold could be the default choice for a new play."""
+    with infra.SessionLocal.begin() as db:
+        records.upsert(
+            db,
+            records.Release(
+                id="m9001",
+                artist="Two Copies",
+                title="Same Album",
+                styles=["Unmapped Style"],
+                cover_url=None,
+                year=2001,
+                instances=[
+                    records.Instance(
+                        id="sold",
+                        is_playable=True,
+                        retirement_status=records.RetirementStatus.ACTIVE,
+                        pressing_release_id=1,
+                        description="Sold Pressing",
+                    ),
+                    records.Instance(
+                        id="kept",
+                        is_playable=True,
+                        retirement_status=records.RetirementStatus.ACTIVE,
+                        pressing_release_id=2,
+                        description="Kept Pressing",
+                    ),
+                ],
+            ),
+        )
+    with infra.SessionLocal.begin() as db:
+        records.confirm_retirement(db, ["sold"])
+
+    client.post("/session/start", data={"mood": moods.PEAK})
+    page = client.get("/session", query_string={"q": "Same Album"})
+
+    # One owned copy left, so the picker collapses to a single hidden input.
+    assert b'value="kept"' in page.data
+    assert b'value="sold"' not in page.data
+    assert b"Sold Pressing" not in page.data
+
+
+def test_a_retired_copy_is_not_listed_on_the_condition_screen(client):
+    _seed_collection(2)
+    with infra.SessionLocal.begin() as db:
+        records.confirm_retirement(db, ["inst0"])
+
+    page = client.get("/condition")
+
+    assert b'value="inst0"' not in page.data
+    assert b'value="inst1"' in page.data
+
+
+# --- FR-10: the explanation actually reaches the screen ---------------------
+
+
+def test_an_empty_result_renders_its_explanation(client):
+    """`active` used to hardcode reason=None, so both call sites passed None and
+    _EMPTY_MESSAGES was unreachable: FR-10 never rendered at all."""
+    _seed_collection(1)
+    client.post("/session/start", data={"mood": moods.PEAK})
+
+    fragment = client.post("/session/regenerate")
+
+    assert fragment.status_code == 200
+    assert b"already seen everything" in fragment.data
+
+
+def test_the_explanation_survives_a_page_reload(client):
+    _seed_collection(1)
+    client.post("/session/start", data={"mood": moods.PEAK})
+    client.post("/session/regenerate")
+
+    page = client.get("/session")
+
+    assert b"already seen everything" in page.data

@@ -13,6 +13,7 @@ redirect, which works without JavaScript and keeps the surface small.
 from __future__ import annotations
 
 import json
+import logging
 import os
 from contextlib import AbstractContextManager
 
@@ -28,6 +29,7 @@ from flask import (
     send_from_directory,
     url_for,
 )
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 import infra
@@ -36,6 +38,8 @@ import recommendations
 import records
 import sessions
 import sync
+
+log = logging.getLogger(__name__)
 
 
 def create_app() -> Flask:
@@ -51,6 +55,21 @@ def create_app() -> Flask:
     # Signs the flash-message cookie. A per-process key is fine: one worker
     # (RFC section 14), single user, and flashes only need to survive a redirect.
     app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(32)
+
+    @app.errorhandler(OperationalError)
+    def busy(exc: OperationalError):
+        """SQLite refused a write because something else held the lock.
+
+        WAL gives concurrent readers but one writer, so a request write can lose
+        to the sync thread's commit and exhaust `busy_timeout` (RFC section 12).
+        The transaction has already rolled back by the time this runs, so nothing
+        is half-written; what is left is telling the user rather than showing
+        them a traceback. Retrying is safe and usually works, because the sync
+        commits once and briefly.
+        """
+        log.warning("database busy, asking the user to retry: %s", exc)
+        flash("The database was busy, most likely a sync finishing up. Try that again.")
+        return redirect(request.referrer or url_for("home")), 503
 
     @app.teardown_appcontext
     def close_session(exception: BaseException | None) -> None:
@@ -291,6 +310,10 @@ _EMPTY_MESSAGES = {
     recommendations.EmptyReason.ALL_RECENT: (
         "Everything that fits was played recently. Come back later, or shorten the recency "
         "window in Settings."
+    ),
+    recommendations.EmptyReason.SESSION_EXHAUSTED: (
+        "You have already seen everything that fits this mood in this session. Start a new "
+        "session, or try a different mood."
     ),
 }
 

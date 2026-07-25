@@ -67,6 +67,22 @@ class Release:
     instances: list[Instance] = field(default_factory=list)
     cover_source_url: str | None = None  # Discogs origin; sync diffs it to spot a new image
 
+    @property
+    def owned_instances(self) -> list[Instance]:
+        """The copies still owned: everything but the confirmed retirements.
+
+        `instances` is the whole aggregate, retirements included, because the
+        history of a sold copy still matters. What a *screen* may offer is
+        narrower: a retired copy is gone, so it cannot be logged as played and
+        its condition cannot be changed. Anything that renders a choice of copy
+        uses this; anything reporting history uses `instances`.
+
+        Not-playable copies stay in here on purpose. FR-13a keeps a damaged copy
+        loggable; the flag suppresses suggestions, it does not deny that you put
+        the record on.
+        """
+        return [i for i in self.instances if i.retirement_status is not RetirementStatus.RETIRED]
+
 
 # --- Identity (architecture RFC section 5) ---------------------------------
 
@@ -97,16 +113,22 @@ def cover_file(rid: ReleaseId) -> Path:
     return infra.covers_dir() / f"{rid}.jpg"
 
 
-def _served_url(cover_path: str | None) -> str | None:
+def _served_url(rid: ReleaseId, cover_path: str | None) -> str | None:
     """The static URL for a cached cover, or None if it is not on disk yet.
 
     Checking the file rather than trusting the column keeps a release whose art
     download failed rendering as "no artwork" instead of a broken image: sync
     records the path at upsert but fetches the bytes afterwards, and a single
     art failure is skipped rather than fatal (RFC section 9).
+
+    The location is recomputed from the release id rather than read out of
+    `cover_path`, which holds an absolute path built from `DATA_DIR` as it stood
+    at the last sync. Trusting that column means every cover silently disappears
+    the day the volume moves, until someone happens to re-sync. `cover_path` is
+    still written as a record of where the bytes were put; it is not a lookup key.
     """
-    if cover_path and Path(cover_path).exists():
-        return f"/covers/{Path(cover_path).name}"
+    if cover_path and cover_file(rid).exists():
+        return f"/covers/{cover_file(rid).name}"
     return None
 
 
@@ -190,7 +212,7 @@ class _Mapper:
             artist=r.artist,
             title=r.title,
             styles=list(r.styles or []),
-            cover_url=_served_url(r.cover_path),
+            cover_url=_served_url(r.id, r.cover_path),
             year=r.year,
             instances=[cls._instance(i) for i in rows],
             cover_source_url=r.cover_source_url,
@@ -338,6 +360,25 @@ def get(db: Session, rid: ReleaseId) -> Release | None:
 def recommendable(db: Session) -> list[Release]:
     """Albums with at least one playable instance whose status is not RETIRED."""
     return _Mapper(db).recommendable()
+
+
+def is_recommendable(release: Release) -> bool:
+    """Whether a release already in hand would still pass `recommendable`.
+
+    The same rule, as a predicate over a loaded aggregate, for a caller holding a
+    Release that it did not get from `recommendable` — `recommendations.active`
+    re-reads a persisted batch by id and has to drop picks that have since been
+    retired or marked unplayable. Reading the whole collection back just to
+    intersect five ids would be the alternative.
+
+    This restates the mapper's WHERE clause in Python, so the two can drift.
+    `test_records.py` pins them against each other; keep that test if you touch
+    either.
+    """
+    return any(
+        i.is_playable and i.retirement_status is not RetirementStatus.RETIRED
+        for i in release.instances
+    )
 
 
 def pending_retirements(db: Session) -> list[Release]:
