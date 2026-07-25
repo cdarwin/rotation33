@@ -1,7 +1,7 @@
 """Phase 2: the collection catalog.
 
 The assertions that matter here are the ones protecting local state from a sync
-(FR-2), the ones keeping a not-playable copy browsable (FR-13a), and the one
+from a sync, the ones keeping a not-playable copy browsable, and the one
 holding the `_Mapper` boundary that every later component copies.
 """
 
@@ -104,7 +104,7 @@ def test_recommendable_excludes_retired_and_not_playable(collection):
 
 
 def test_recommendable_keeps_pending(collection):
-    """FR-2a excludes an instance only once retirement is *confirmed*."""
+    """An instance is excluded only once its retirement is *confirmed*."""
     records.reconcile_retirements(collection, present_instance_ids=set())
     assert records.get(collection, "m1").instances[0].retirement_status is (
         RetirementStatus.PENDING
@@ -121,7 +121,7 @@ def test_recommendable_keeps_an_album_with_one_good_copy_among_bad_ones(db):
 
 
 def test_browse_does_not_filter_on_playability(collection):
-    """FR-13a: a not-playable copy is suppressed from suggestions, not from the shelf."""
+    """A not-playable copy is suppressed from suggestions, not from the shelf."""
     assert {r.id for r in records.browse(collection)} == {"m1", "m2", "m3"}
 
 
@@ -176,7 +176,7 @@ def test_pending_retirements_narrows_the_album_to_its_pending_copies(db):
     assert [i.id for i in pending[0].instances] == ["gone"]
 
 
-# --- upsert: the FR-2 guarantee -------------------------------------------
+# --- upsert: sync never writes local state ---------------------------------
 
 
 def test_upsert_creates_a_new_release_with_defaults(db):
@@ -202,7 +202,7 @@ def test_upsert_creates_a_new_release_with_defaults(db):
 
 
 def test_upsert_never_touches_is_playable_or_retirement_on_an_existing_row(db):
-    """FR-2: a sync is one-way and must not write local behavioral state.
+    """A sync is one-way and must not write local behavioral state.
 
     The re-upsert below carries the values a fresh Discogs listing would carry
     (playable, active) against a row the user has since marked not-playable and
@@ -251,7 +251,7 @@ def test_upsert_adds_a_newly_acquired_copy_to_an_existing_album(db):
 
 
 def test_upsert_stores_the_pressing_release_id(db):
-    """Execution plan D6: the durable handle for a master reassignment."""
+    """The durable handle for a master reassignment."""
     records.upsert(db, release("m1", instances=[instance("i1", pressing=8675309)]))
     assert records.get(db, "m1").instances[0].pressing_release_id == 8675309
 
@@ -269,7 +269,7 @@ def test_cover_source_url_round_trips_for_sync_change_detection(db):
     assert records.get(db, "m1").cover_source_url == "https://img.discogs.com/abc.jpg"
 
 
-# --- reconcile_retirements (FR-2a) ----------------------------------------
+# --- reconcile_retirements -------------------------------------------------
 
 
 def test_reconcile_flags_absent_instances_pending(db):
@@ -293,7 +293,7 @@ def test_reconcile_flips_a_reappeared_instance_back_to_active(db):
 
 
 def test_reconcile_un_retires_a_confirmed_retirement_that_reappears(db):
-    """FR-2a: a reappearing instance un-retires and reconnects to its history."""
+    """A reappearing instance un-retires and reconnects to its history."""
     records.upsert(db, release("m1", instances=[instance("i1")]))
     records.confirm_retirement(db, ["i1"])
 
@@ -403,7 +403,7 @@ class TestOwnedInstances:
     """A confirmed retirement is gone from the shelf, so no screen may offer it.
 
     `instances` stays complete, because a sold copy's play history still counts
-    (FR-2a). `owned_instances` is what a choice-of-copy control renders.
+    `owned_instances` is what a choice-of-copy control renders.
     """
 
     def test_owned_instances_drops_a_retired_copy(self):
@@ -419,13 +419,13 @@ class TestOwnedInstances:
         assert len(rel.instances) == 2  # the aggregate is untouched
 
     def test_owned_instances_keeps_a_not_playable_copy(self):
-        # FR-13a: damaged still means owned, and still loggable.
+        # Damaged still means owned, and still loggable.
         rel = release("m1", instances=(instance("warped", playable=False),))
 
         assert [i.id for i in rel.owned_instances] == ["warped"]
 
     def test_owned_instances_keeps_a_pending_copy(self):
-        # FR-2a excludes an instance only once the user confirms it.
+        # Excluded only once the user confirms it.
         rel = release("m1", instances=(instance("maybe", status=RetirementStatus.PENDING),))
 
         assert [i.id for i in rel.owned_instances] == ["maybe"]

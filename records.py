@@ -1,20 +1,14 @@
 """Collection catalog: albums, the pressings owned of them, condition, retirement.
 
-The first component with storage, so it sets down the `_Mapper` pattern that
-every other component copies (architecture RFC section 3). The conventions:
+The first component with storage, so it sets down the `_Mapper` pattern the
+others copy:
 
-- ORM rows are private (`_ReleaseRow`, `_InstanceRow`) and never leave the
-  module. Public functions accept and return frozen dataclasses only.
-- `_Mapper` is session-bound, constructed per call, and is the *only* code that
-  touches a table. It holds the queries and both transforms: row-to-domain
-  (`_release`, `_instance`, classmethods, since they need no session) and
-  domain-to-row (`upsert`).
-- Public functions carry the validation and the business rules, then delegate
-  persistence. A rule never lives in the mapper and SQL never lives outside it.
-- Nothing here commits. The caller owns the transaction: the view commits on the
-  success path, and the sync thread commits its whole fetch once at the end
-  (RFC sections 9 and 10). A component that committed on its own would break
-  that isolation.
+- ORM rows are private and never leave the module; public functions accept and
+  return frozen dataclasses only.
+- `_Mapper` is session-bound and the only code that touches a table.
+- Rules and validation live in the public functions, never in the mapper; SQL
+  lives in the mapper, never outside it.
+- Nothing here commits. The caller owns the transaction.
 """
 
 from __future__ import annotations
@@ -48,7 +42,7 @@ class Instance:
     """One owned physical copy: a Discogs collection instance."""
 
     id: InstanceId  # Discogs collection instance_id, the per-copy holding id
-    is_playable: bool  # FR-13
+    is_playable: bool
     retirement_status: RetirementStatus
     pressing_release_id: int  # Discogs release id of the pressing; see _InstanceRow
     description: str | None = None  # from the format text; only useful with >1 copy
@@ -62,41 +56,34 @@ class Release:
     artist: str
     title: str
     styles: list[str]  # drive mood fit
-    cover_url: str | None  # local static URL the template renders (FR-6)
+    cover_url: str | None  # local static URL the template renders
     year: int | None
     instances: list[Instance] = field(default_factory=list)
     cover_source_url: str | None = None  # Discogs origin; sync diffs it to spot a new image
 
     @property
     def owned_instances(self) -> list[Instance]:
-        """The copies still owned: everything but the confirmed retirements.
+        """The copies still owned. Anything offering a choice of copy uses this;
+        anything reporting history uses `instances`, which keeps retirements
+        because a sold copy's plays still count.
 
-        `instances` is the whole aggregate, retirements included, because the
-        history of a sold copy still matters. What a *screen* may offer is
-        narrower: a retired copy is gone, so it cannot be logged as played and
-        its condition cannot be changed. Anything that renders a choice of copy
-        uses this; anything reporting history uses `instances`.
-
-        Not-playable copies stay in here on purpose. FR-13a keeps a damaged copy
-        loggable; the flag suppresses suggestions, it does not deny that you put
-        the record on.
+        Not-playable copies stay in: the flag suppresses suggestions, it does not
+        deny that you put the record on.
         """
         return [i for i in self.instances if i.retirement_status is not RetirementStatus.RETIRED]
 
 
-# --- Identity (architecture RFC section 5) ---------------------------------
+# --- Identity --------------------------------------------------------------
 
 
 def release_id(master_id: int | None, pressing_release_id: int) -> ReleaseId:
-    """Resolve the Discogs ids for one listing to this system's release id.
+    """The Discogs ids for one listing, resolved to our release id.
 
-    `m<master_id>`, falling back to `r<release_id>` for a release with no master.
-    The namespace prefix is the point: without it a master id and a release id
-    could alias in the one `release.id` column and silently merge two albums.
+    `m<master_id>`, falling back to `r<release_id>` when there is no master. The
+    namespace prefix stops a master id and a release id aliasing in the one
+    `release.id` column and silently merging two albums.
 
-    Public because `sync` groups a collection page by this exact rule (RFC
-    section 9 step 3); it must call this rather than reimplement it, or the two
-    definitions drift and re-key the collection.
+    Public because `sync` groups by this rule and must not reimplement it.
     """
     if master_id:  # 0 and None both mean "no master"
         return f"m{master_id}"
@@ -104,28 +91,20 @@ def release_id(master_id: int | None, pressing_release_id: int) -> ReleaseId:
 
 
 def cover_file(rid: ReleaseId) -> Path:
-    """Where this release's cover art lives on the data volume.
-
-    Named by release id so a retried sync overwrites rather than orphaning (RFC
-    section 7). Public for the same reason as `release_id`: `sync` downloads to
-    this path and the mapper renders from it, so one function owns the naming.
-    """
+    """Where this release's cover art lives. Named by release id so a retried
+    sync overwrites rather than orphaning. `sync` writes here and the mapper
+    renders from here, so one function owns the naming."""
     return infra.covers_dir() / f"{rid}.jpg"
 
 
 def _served_url(rid: ReleaseId) -> str | None:
-    """The static URL for a cached cover, or None if it is not on disk yet.
+    """The static URL for a cached cover, or None if it is not on disk.
 
-    Checking the file rather than trusting the column keeps a release whose art
-    download failed rendering as "no artwork" instead of a broken image: sync
-    records the path at upsert but fetches the bytes afterwards, and a single
-    art failure is skipped rather than fatal (RFC section 9).
-
-    The location comes from the release id, not from the `cover_path` column,
-    which holds an absolute path built from `DATA_DIR` as it stood at the last
-    sync: trusting it means every cover silently disappears the day the volume
-    moves. The column is still written as a record of where the bytes went; the
-    file on disk is the only thing consulted here.
+    Consults the file, not the `cover_path` column: sync records the path but
+    fetches the bytes afterwards and skips failures, so a missing file must read
+    as "no artwork" rather than a broken image. The column also holds an absolute
+    path built from `DATA_DIR` as it stood at the last sync, so trusting it would
+    lose every cover the day the volume moves.
     """
     return f"/covers/{cover_file(rid).name}" if cover_file(rid).exists() else None
 
@@ -140,7 +119,7 @@ class _ReleaseRow(infra.Base):
     artist: Mapped[str]
     title: Mapped[str]
     year: Mapped[int | None]
-    # A JSON list, not a join table (RFC section 7). Styles are only ever read
+    # A JSON list, not a join table. Styles are only ever read
     # as a whole set per release; a join table would buy nothing.
     styles: Mapped[list[str]] = mapped_column(JSON, default=list)
     cover_path: Mapped[str | None]  # local file; the dataclass cover_url derives from it
@@ -158,23 +137,20 @@ class _InstanceRow(infra.Base):
     __tablename__ = "instance"
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
-    # The only place the instance-to-release reference exists. It assembles the
-    # aggregate and is deliberately absent from the Instance dataclass, which is
-    # always reached through its Release (RFC section 5).
-    # Indexed: every aggregate load and every recommendable/browse query joins
-    # on it, so it is the module's hottest column after the primary keys.
+    # The only place the instance-to-release reference exists; absent from the
+    # Instance dataclass, which is always reached through its Release. Indexed
+    # because every aggregate load and every browse query joins on it.
     release_id: Mapped[str] = mapped_column(ForeignKey("release.id"), index=True)
-    # Required, not optional (execution plan D6). Discogs master assignments
-    # change over time, and a no-master-to-has-master transition re-keys an
-    # album on a later sync and can split its instances and recency history.
-    # That is the one accepted data-loss risk in this design, and this id is the
-    # only surviving evidence of which instances used to belong together. It is
-    # one integer, free from the listing payload. Do not make it nullable.
+    # Required, not optional. Discogs master assignments change over time, and a
+    # no-master-to-has-master transition re-keys an album on a later sync,
+    # splitting its instances and recency history. This id is then the only
+    # evidence of which instances used to belong together. Do not make it
+    # nullable.
     pressing_release_id: Mapped[int]
     is_playable: Mapped[bool] = mapped_column(default=True)
     retirement_status: Mapped[RetirementStatus] = mapped_column(
         # Store the lowercase values ("active"), not the member names, so the
-        # column reads the way the PRD and the URLs talk about it.
+        # column reads the way the URLs do.
         SAEnum(RetirementStatus, values_callable=lambda e: [m.value for m in e]),
         default=RetirementStatus.ACTIVE,
     )
@@ -219,8 +195,8 @@ class _Mapper:
     # --- reads -------------------------------------------------------------
 
     def _ordered(self, stmt):
-        # Artist then title (FR-12a). Lowercased so "the Beatles" and "The
-        # Beatles" do not sort into different neighbourhoods.
+        # Lowercased so "the Beatles" and "The Beatles" do not sort into
+        # different neighbourhoods.
         return stmt.order_by(func.lower(_ReleaseRow.artist), func.lower(_ReleaseRow.title))
 
     def browse(self) -> list[Release]:
@@ -243,8 +219,8 @@ class _Mapper:
         return self._release(row) if row else None
 
     def recommendable(self) -> list[Release]:
-        # PENDING survives this filter on purpose: FR-2a excludes an instance
-        # only once its retirement is confirmed.
+        # PENDING survives on purpose: an instance is excluded only once the
+        # user confirms its retirement.
         stmt = self._ordered(
             select(_ReleaseRow)
             .join(_InstanceRow)
@@ -264,8 +240,8 @@ class _Mapper:
             .distinct()
         )
         return [
-            # Narrowed to just the pending instances: the confirmation screen
-            # asks about those copies, not about every copy of the album.
+            # Narrowed to the pending copies: the confirmation screen asks about
+            # those, not about every copy of the album.
             self._release(
                 r, [i for i in r.instances if i.retirement_status is RetirementStatus.PENDING]
             )
@@ -306,9 +282,8 @@ class _Mapper:
                     is_playable=inst.is_playable,
                     retirement_status=inst.retirement_status,
                 )
-            # Metadata only. is_playable and retirement_status are deliberately
-            # absent from this block: they are local behavioral state and a sync
-            # must never write them on an existing row (FR-2).
+            # Metadata only. is_playable and retirement_status are absent by
+            # design: they are local state and a sync must never overwrite them.
             irow.release_id = release.id
             irow.pressing_release_id = inst.pressing_release_id
             irow.description = inst.description
@@ -329,25 +304,23 @@ class _Mapper:
             self._db.get(_InstanceRow, iid).retirement_status = RetirementStatus.RETIRED
 
 
-# --- Public surface (architecture RFC section 5.1) -------------------------
+# --- Public surface --------------------------------------------------------
 #
 # Validate or enforce the rule here, then delegate persistence to the mapper.
 
 
 def browse(db: Session) -> list[Release]:
-    """Every owned album, artist then title (FR-12a).
+    """Every owned album, artist then title.
 
-    Does not filter on playability: a not-playable copy is still browsable and
-    still loggable (FR-13a). The flag suppresses suggestions only.
+    Does not filter on playability: a damaged copy is still browsable and still
+    loggable. The flag suppresses suggestions only.
     """
     return _Mapper(db).browse()
 
 
 def search(db: Session, text: str) -> list[Release]:
-    """Albums whose artist or title matches, case-insensitive (FR-12a).
-
-    Like `browse`, does not filter on playability (FR-13a).
-    """
+    """Albums whose artist or title matches, case-insensitive. Like `browse`,
+    does not filter on playability."""
     return _Mapper(db).search(text)
 
 
@@ -361,42 +334,43 @@ def recommendable(db: Session) -> list[Release]:
 
 
 def pending_retirements(db: Session) -> list[Release]:
-    """Albums narrowed to their PENDING instances, for the confirmation list (FR-2a)."""
+    """Albums narrowed to their PENDING copies, for the confirmation list."""
     return _Mapper(db).pending_retirements()
 
 
 def styles(db: Session) -> set[str]:
-    """Distinct styles present; the view diffs these against the affinity map (FR-18)."""
+    """Distinct styles present. The view diffs these against the affinity map to
+    surface styles nobody has classified yet."""
     return _Mapper(db).styles()
 
 
 def upsert(db: Session, release: Release) -> None:
-    """Write album and pressing metadata from a sync (FR-1).
+    """Write album and pressing metadata from a sync.
 
-    Never touches condition or retirement on an existing row (FR-2). Retirement
-    is a whole-collection set difference, so it is `reconcile_retirements`, not
-    part of this per-album write.
+    Never touches condition or retirement on an existing row. Retirement is a
+    whole-collection set difference, so it lives in `reconcile_retirements`
+    rather than in this per-album write.
     """
     _Mapper(db).upsert(release)
 
 
 def reconcile_retirements(db: Session, present_instance_ids: set[InstanceId]) -> list[Instance]:
-    """Diff the whole collection against what the fetch found (FR-2a).
+    """Diff the whole collection against what the fetch found.
 
     An instance held locally but absent from Discogs becomes PENDING; one that
-    reappears flips back to ACTIVE and reconnects to its existing play history.
-    Returns the instances newly flagged PENDING, which is what a sync reports.
+    reappears flips back to ACTIVE and keeps its play history. Returns the newly
+    pending instances, which is what a sync reports.
 
-    Only safe on a *complete* fetch: a partial one would look like a mass
-    disappearance and flag the whole collection. The caller enforces that (RFC
-    section 9), which is why this is a separate function from `upsert`.
+    Only safe on a *complete* fetch, since a partial one looks like a mass
+    disappearance and would flag the whole collection. That is why this is
+    separate from `upsert`: the caller decides when the fetch is complete.
     """
     m = _Mapper(db)
     newly_pending: list[_InstanceRow] = []
     reappeared: list[_InstanceRow] = []
     for row in m.all_instances():
         if row.id in present_instance_ids:
-            # Covers RETIRED as well as PENDING: FR-2a un-retires on reappearance.
+            # Covers RETIRED as well as PENDING: a copy that comes back un-retires.
             if row.retirement_status is not RetirementStatus.ACTIVE:
                 reappeared.append(row)
         elif row.retirement_status is RetirementStatus.ACTIVE:
@@ -408,7 +382,7 @@ def reconcile_retirements(db: Session, present_instance_ids: set[InstanceId]) ->
 
 
 def confirm_retirement(db: Session, instance_ids: list[InstanceId]) -> None:
-    """The user confirms the pending retirements; only now are they excluded (FR-2a)."""
+    """The user confirms the pending retirements. Only now are they excluded."""
     m = _Mapper(db)
     for iid in instance_ids:
         if m.get_instance(iid) is None:
@@ -417,7 +391,7 @@ def confirm_retirement(db: Session, instance_ids: list[InstanceId]) -> None:
 
 
 def set_playable(db: Session, instance_id: InstanceId, playable: bool) -> None:
-    """Mark one copy playable or not (FR-13)."""
+    """Mark one copy playable or not."""
     m = _Mapper(db)
     if m.get_instance(instance_id) is None:
         raise UnknownInstance(instance_id)

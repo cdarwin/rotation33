@@ -8,7 +8,7 @@
       <p><span class="mood-tag">{{ session.mood }}</span></p>
     </div>
     <div class="session-actions">
-      {# FR-9: regenerate carries the pinned picks (the checked "keep" boxes,
+      {# Regenerate carries the pinned picks (the checked "keep" boxes,
          which belong to this form via their form="regen" attribute) and swaps
          only the recommendations panel back in. #}
       <form id="regen" hx-post="{{ url_for('session_regenerate') }}"

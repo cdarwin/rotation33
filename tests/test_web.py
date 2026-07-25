@@ -1,8 +1,8 @@
-"""Flask test-client smoke coverage of the screen wiring (RFC section 13).
+"""Flask test-client smoke coverage of the screen wiring.
 
 The logic underneath is tested in each component's own suite; these guard that
 the views reach it, that the two htmx interactions swap the right fragment, and
-that every FR is reachable through the UI. Data is seeded through the real write
+that every screen is reachable through the UI. Data is seeded through the real write
 path so a view reads what a real sync or session would have written.
 """
 
@@ -61,7 +61,7 @@ def client(data_dir):
     return application.test_client()
 
 
-# --- Home (FR-3, FR-19) -----------------------------------------------------
+# --- Home -------------------------------------------------------------------
 
 
 def test_home_prompts_a_sync_when_the_collection_is_empty(client):
@@ -76,10 +76,10 @@ def test_home_offers_the_moods_with_one_preselected(client):
     assert page.status_code == 200
     for name in moods.NAMES:
         assert name.encode() in page.data
-    assert b"checked" in page.data  # FR-3: a mood is pre-selected
+    assert b"checked" in page.data  # a mood is pre-selected
 
 
-# --- The session workspace (FR-4, FR-6, FR-9, FR-10) ------------------------
+# --- The session workspace --------------------------------------------------
 
 
 def test_start_session_then_see_picks(client):
@@ -89,7 +89,7 @@ def test_start_session_then_see_picks(client):
 
     page = client.get("/session")
     assert page.status_code == 200
-    assert b"pick-card" in page.data  # FR-4: picks are rendered
+    assert b"pick-card" in page.data
     assert b"Log something else" in page.data  # search-to-log folded in
     assert b"Logged this session" in page.data  # the session log lives here too
 
@@ -118,7 +118,7 @@ def test_regenerate_returns_only_the_picks_fragment(client):
 
     fragment = client.post("/session/regenerate")
     assert fragment.status_code == 200
-    # A fragment for the htmx swap, not a whole page (FR-9).
+    # A fragment for the htmx swap, not a whole page.
     assert b"<nav" not in fragment.data
     assert b"pick-card" in fragment.data or b"empty-reason" in fragment.data
 
@@ -143,7 +143,7 @@ def test_start_session_rejects_an_unknown_mood(client):
     assert b"Pick a mood" in response.data
 
 
-# --- Logging inside the workspace (FR-11, FR-12a, FR-12b) -------------------
+# --- Logging inside the workspace -------------------------------------------
 
 
 def test_log_a_pick_then_remove_it(client):
@@ -204,7 +204,7 @@ def test_the_old_log_screen_is_gone(client):
     assert client.get("/log").status_code == 404
 
 
-# --- Condition (FR-13) ------------------------------------------------------
+# --- Condition --------------------------------------------------------------
 
 
 def test_toggle_playable(client):
@@ -220,7 +220,7 @@ def test_toggle_playable(client):
         assert inst.is_playable is True
 
 
-# --- Settings (FR-14, FR-15, FR-16, FR-18) ----------------------------------
+# --- Settings ---------------------------------------------------------------
 
 
 def test_set_recency_window(client):
@@ -268,10 +268,10 @@ def test_reject_an_unknown_mood_in_the_affinity_map(client):
 def test_settings_lists_unmapped_styles(client):
     _seed_collection()  # every seeded release carries "Unmapped Style"
     page = client.get("/settings")
-    assert b"Unmapped Style" in page.data  # FR-18 review list
+    assert b"Unmapped Style" in page.data  # the unclassified-styles list
 
 
-# --- Sync (FR-1, FR-2a) -----------------------------------------------------
+# --- Sync -------------------------------------------------------------------
 
 
 def test_sync_page_shows_never_synced_before_a_run(client):
@@ -327,7 +327,7 @@ def test_confirm_a_retirement(client):
         assert inst.retirement_status is records.RetirementStatus.RETIRED
 
 
-# --- Cover serving (FR-6) ---------------------------------------------------
+# --- Cover serving ----------------------------------------------------------
 
 
 def test_cover_is_served_from_the_data_volume(client, data_dir):
@@ -398,12 +398,12 @@ def test_a_retired_copy_is_not_listed_on_the_condition_screen(client):
     assert b'value="inst1"' in page.data
 
 
-# --- FR-10: the explanation actually reaches the screen ---------------------
+# --- The empty-result explanation reaches the screen ------------------------
 
 
 def test_an_empty_result_renders_its_explanation(client):
     """`active` used to hardcode reason=None, so both call sites passed None and
-    _EMPTY_MESSAGES was unreachable: FR-10 never rendered at all."""
+    _EMPTY_MESSAGES was unreachable and no explanation ever rendered."""
     _seed_collection(1)
     client.post("/session/start", data={"mood": moods.PEAK})
 

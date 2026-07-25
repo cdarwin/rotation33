@@ -2,7 +2,7 @@
 
 An empty generate used to write no rows, so the next read of "the latest batch"
 found the previous one and resurrected picks the user had already rejected,
-losing the FR-10 explanation with them. An empty batch is now one marker row:
+losing the explanation with them. An empty batch is now one marker row:
 `release_id` null, `empty_reason` set.
 
 Revision ID: 9c1f4a7b2e05

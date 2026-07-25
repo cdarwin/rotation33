@@ -1,15 +1,14 @@
 """The five fixed moods, their editable descriptions, and the style affinity map.
 
-Mood identity is code, not data (architecture RFC section 5.2). The name and the
-time window of each of the five are constants below; only the description
-(FR-15) and the affinity map (FR-16) are editable, and each is persisted as an
-*override* of a code-level default.
+Mood identity is code, not data. The name and time window of each of the five
+are constants below; only the description and the affinity map are editable, and
+each persists as an *override* of a code-level default.
 
-That is what makes FR-17 true without a seeding step: a read returns the
-persisted override if one exists, otherwise the built-in default. A fresh
-database is already fully configured, first sync onwards, and a future "reset to
-defaults" is a delete rather than a re-seed. There is deliberately no seed
-script anywhere in this repository, and a test asserts as much.
+That is what removes the need for a seeding step: a read returns the persisted
+override if one exists, otherwise the built-in default. A fresh database is
+already fully configured, and a future "reset to defaults" is a delete rather
+than a re-seed. There is deliberately no seed script in this repository, and a
+test asserts as much.
 
 Conventions are the ones `records` set down: private ORM rows that never leave
 the module, a session-bound `_Mapper` that is the only code touching a table,
@@ -31,9 +30,8 @@ import infra
 class UnknownMood(Exception):
     """Raised when a mood name is not one of the fixed five.
 
-    A loud failure on a typo is the whole point (RFC section 5.2): a misspelled
-    mood in a submitted affinity map would otherwise persist happily and then
-    silently match nothing forever.
+    A loud failure on a typo is the point: a misspelled mood in a submitted
+    affinity map would otherwise persist happily and match nothing forever.
     """
 
 
@@ -64,7 +62,7 @@ class TimeWindow:
 @dataclass(frozen=True)
 class Mood:
     name: str  # one of the fixed five
-    description: str  # editable (FR-15), defaulted from code
+    description: str  # editable; defaulted from code
     window: TimeWindow  # soft pre-select window; code constant
 
 
@@ -74,18 +72,18 @@ class Affinity:
 
     `mapped_styles` is every style appearing anywhere in the map, not just the
     ones this mood weights. The distinction is load-bearing: `picker` treats an
-    *unmapped* style as eligible for every mood (FR-18), so it has to be able to
-    tell "no one mapped this style" from "mapped, but not to this mood".
+    *unmapped* style as eligible for every mood, so it has to tell "no one mapped
+    this style" from "mapped, but not to this mood".
     """
 
     weights: Mapping[str, float]  # this mood's style -> affinity
     mapped_styles: frozenset[str]  # every style anywhere in the map
 
 
-# --- The five moods (code constants, RFC section 5.2) ----------------------
+# --- The five moods --------------------------------------------------------
 #
-# In the order the PRD's day-arc runs: ease in, bear down, lift, ease out, and
-# optionally clock off. `choices` preserves this order for the start picker.
+# In day-arc order: ease in, bear down, lift, ease out, and optionally clock off.
+# `choices` preserves this order for the start picker.
 
 FIRST_LIGHT = "First Light"
 HEADS_DOWN = "Heads Down"
@@ -148,14 +146,13 @@ NAMES: tuple[str, ...] = tuple(m.name for m in MOODS)
 _BY_NAME: dict[str, Mood] = {m.name: m for m in MOODS}
 
 
-# --- Built-in affinity map (FR-17) ----------------------------------------
+# --- Built-in affinity map -------------------------------------------------
 #
-# Keyed by Discogs style, mapping to the moods that style suits (PRD section 7:
-# "a Style Affinity maps a Discogs style tag to the Mood or Moods it suits"). A
-# style may suit more than one mood, with different strengths.
+# Keyed by Discogs style, mapping to the moods that style suits. A style may
+# suit more than one mood, with different strengths.
 #
 # Style-keyed rather than mood-keyed because that is the shape both consumers
-# want: the FR-18 review list diffs `records.styles` against these keys, and
+# want: the settings review list diffs `records.styles` against these keys, and
 # `mapped_styles` is exactly this dict's key set.
 
 DEFAULT_AFFINITY_MAP: dict[str, dict[str, float]] = {
@@ -204,10 +201,10 @@ DEFAULT_AFFINITY_MAP: dict[str, dict[str, float]] = {
 }
 
 
-# --- Storage (RFC section 7) ----------------------------------------------
+# --- Storage ---------------------------------------------------------------
 #
-# Overrides only. Mood identity and windows are code, not rows, and the FR-18
-# unmapped-style set is derived on demand rather than stored.
+# Overrides only. Mood identity and windows are code, not rows, and the set of
+# unmapped styles is derived on demand rather than stored.
 
 
 class _DescriptionRow(infra.Base):
@@ -223,8 +220,8 @@ class _AffinityMapRow(infra.Base):
     """The whole affinity map as one JSON document, in a single row.
 
     One document rather than a style-per-row table because it is only ever read
-    and written whole (FR-16 edits it as a single validated blob), and because
-    "no row" has to keep meaning "use the code default".
+    and written whole, and because "no row" has to keep meaning "use the code
+    default".
     """
 
     __tablename__ = "affinity_map"
@@ -282,7 +279,7 @@ class _Mapper:
         self._db.add(row)
 
 
-# --- Public surface (architecture RFC section 5.2) -------------------------
+# --- Public surface --------------------------------------------------------
 
 
 def choices(db: Session) -> list[Mood]:
@@ -302,8 +299,8 @@ def get(db: Session, name: str) -> Mood:
 def affinity(db: Session, name: str) -> Affinity:
     """This mood's fit input, for the facade-to-`picker` handoff.
 
-    The fit *rules* (best-style-wins FR-8, unmapped-eligible FR-18) live in
-    `picker`; this only supplies the weights and the mapped-style set.
+    The fit *rules* live in `picker`; this only supplies the weights and the
+    mapped-style set.
     """
     if name not in _BY_NAME:
         raise UnknownMood(name)
@@ -316,7 +313,7 @@ def affinity(db: Session, name: str) -> Affinity:
 
 
 def for_time(now: datetime) -> str:
-    """The time-appropriate mood to pre-select (FR-3). No storage, so no `db`.
+    """The time-appropriate mood to pre-select. No storage, so no `db`.
 
     The five windows tile the whole 24 hours, After Dark wrapping past midnight
     to cover 00:00 to 06:00, so this returns a mood for every clock reading.
@@ -333,8 +330,8 @@ def affinity_map(db: Session) -> dict[str, dict[str, float]]:
     """The whole editable map: the persisted override, else the code default.
 
     Keyed by style; the keys are what the view diffs against `records.styles`
-    for the FR-18 review list. Always a fresh dict, so a caller cannot mutate
-    the module constant.
+    to surface unclassified styles. Always a fresh dict, so a caller cannot
+    mutate the module constant.
     """
     stored = _Mapper(db).affinity_map()
     source = DEFAULT_AFFINITY_MAP if stored is None else stored
@@ -342,19 +339,18 @@ def affinity_map(db: Session) -> dict[str, dict[str, float]]:
 
 
 def set_description(db: Session, name: str, text: str) -> None:
-    """Persist an override of a mood's built-in description (FR-15)."""
+    """Persist an override of a mood's built-in description."""
     if name not in _BY_NAME:
         raise UnknownMood(name)
     _Mapper(db).set_description(name, text)
 
 
 def set_affinity_map(db: Session, mapping: Mapping[str, Mapping[str, float]]) -> None:
-    """Replace the whole style-to-mood affinity map (FR-16).
+    """Replace the whole style-to-mood affinity map.
 
-    Validated at the write boundary (RFC sections 5.2 and 12): every mood name
-    must be one of the five and every affinity a number in [0, 1]. A typo has to
-    fail here and loudly, because the alternative is a map that persists fine
-    and then silently never matches anything.
+    Validated at the write boundary: every mood name must be one of the five and
+    every affinity a number in [0, 1]. A typo has to fail here and loudly, since
+    the alternative is a map that persists fine and then never matches anything.
     """
     clean: dict[str, dict[str, float]] = {}
     for style, weights in mapping.items():

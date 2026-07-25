@@ -1,6 +1,6 @@
 """Shared SQLAlchemy bootstrap, environment config, and the clock.
 
-No domain models and no domain logic live here (architecture RFC section 4).
+No domain models and no domain logic live here.
 Every component's ORM rows hang off the single `Base` declared below, which is
 what lets a cross-component foreign key be a string reference rather than an
 import.
@@ -21,7 +21,7 @@ class Base(DeclarativeBase):
     """Single metadata registry shared by every component."""
 
 
-# --- Environment (architecture RFC section 11) -----------------------------
+# --- Environment -----------------------------------------------------------
 #
 # Read through functions rather than captured at import so tests and the app
 # factory can set the environment before anything reads it.
@@ -55,7 +55,7 @@ def now() -> datetime:
     """Naive local time in the configured zone.
 
     Naive by contract, not by accident: recency arithmetic and the never-played
-    sentinel both assume no aware/naive mixing (architecture RFC section 2).
+    sentinel both assume no aware/naive mixing.
     """
     return datetime.now(timezone()).replace(tzinfo=None)
 
@@ -79,7 +79,7 @@ def build_engine(url: str | None = None) -> Engine:
     """Create an engine with the SQLite pragmas applied per connection.
 
     WAL for concurrent readers alongside the sync thread's single writer, and
-    `busy_timeout` so a collision waits instead of erroring (RFC section 12).
+    `busy_timeout` so a collision waits instead of erroring.
     """
     made = create_engine(url or database_url())
     event.listen(made, "connect", _apply_pragmas)

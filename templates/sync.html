@@ -4,7 +4,7 @@
 {% block content %}
   <section class="panel">
     <h1>Sync</h1>
-    <p class="lede">Pull the latest from Discogs (FR-1). Condition and play history are never
+    <p class="lede">Pull the latest from Discogs. Condition and play history are never
       touched; only album and pressing metadata is refreshed.</p>
     <form method="post" action="{{ url_for('sync_trigger') }}">
       <button type="submit" class="button">Sync now</button>
@@ -20,7 +20,7 @@
     <section class="panel">
       <h2>Confirm retirements</h2>
       <p class="lede">These copies were in the collection before but were absent from the last
-        sync. Confirm to retire them; anything left unchecked stays pending (FR-2a).</p>
+        sync. Confirm to retire them; anything left unchecked stays pending.</p>
       <form method="post" action="{{ url_for('sync_retire') }}">
         <ul class="album-list">
           {% for album in pending %}

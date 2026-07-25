@@ -23,7 +23,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-# The app is a set of root-level modules run in place (architecture RFC section 3),
+# The app is a set of root-level modules run in place,
 # not an installed package. Installing this project installs its dependencies only.
 packages = []
 
@@ -31,8 +31,8 @@ packages = []
 line-length = 100
 target-version = "py312"
 # Ruff 0.16 began formatting fenced code blocks inside Markdown, which rewrites
-# the hand-aligned illustrative samples in the RFCs and fails `ruff format
-# --check .` on files nobody edited. The docs are prose, not source.
+# the hand-aligned samples under docs/ and fails `ruff format --check .` on files
+# nobody edited. Those are prose, not source.
 extend-exclude = ["docs"]
 
 [tool.ruff.lint]

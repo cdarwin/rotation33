@@ -1,8 +1,8 @@
 """Phase 3: the five moods, their descriptions, and the affinity map.
 
-The assertions that matter here are the FR-17 one (defaults come from code, so
-there is no seeding step and no seed script), the FR-3 one (`for_time` answers
-for every hour of the clock, including the post-midnight wrap), and the FR-16
+The assertions that matter here are that defaults come from code (so there is
+no seeding step and no seed script), that `for_time` answers for every hour of
+the clock including the post-midnight wrap, and the
 write-boundary validation that makes a typo fail loudly.
 """
 
@@ -43,7 +43,7 @@ def test_get_raises_on_an_unknown_mood(db):
         moods.get(db, "Brunch")
 
 
-# --- for_time (FR-3) -------------------------------------------------------
+# --- for_time --------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -85,13 +85,13 @@ def test_for_time_boundaries_are_half_open(at, expected):
 
 
 def test_for_time_takes_no_database():
-    """It reads no storage, so it must not ask for a session (RFC section 3)."""
+    """It reads no storage, so it must not ask for a session."""
     import inspect
 
     assert "db" not in inspect.signature(moods.for_time).parameters
 
 
-# --- Defaults with no seeding (FR-17) --------------------------------------
+# --- Defaults with no seeding ----------------------------------------------
 
 
 def test_descriptions_default_from_code_on_a_virgin_database(db):
@@ -105,7 +105,7 @@ def test_affinity_map_defaults_from_code_on_a_virgin_database(db):
 
 
 def test_affinity_is_usable_before_anything_is_ever_written(db):
-    """FR-17: sensible recommendations immediately, with no manual setup."""
+    """Sensible recommendations immediately, with no manual setup."""
     got = moods.affinity(db, "Peak")
     assert got.weights["Funk"] == 1.0
     assert "Post-Punk" in got.mapped_styles  # mapped, just not to Peak
@@ -113,7 +113,7 @@ def test_affinity_is_usable_before_anything_is_ever_written(db):
 
 
 def test_no_seed_script_exists_anywhere(db):
-    """FR-17 is satisfied by code defaults, so seeding must not exist to drift from.
+    """Defaults come from code, so seeding must not exist to drift from them.
 
     A seed step would reintroduce exactly the failure mode the design removes: a
     database whose defaults are a snapshot of an older constant.
@@ -127,7 +127,7 @@ def test_no_seed_script_exists_anywhere(db):
     assert offenders == []
 
 
-# --- The built-in map covers the PRD's styles ------------------------------
+# --- The built-in map covers the collection's styles -----------------------
 
 
 def test_every_mood_has_at_least_one_default_style(db):
@@ -143,7 +143,7 @@ def test_default_affinities_are_all_within_range():
 
 
 def test_a_style_may_suit_more_than_one_mood():
-    """PRD section 7: First Light and Golden Hour share the mellow core."""
+    """First Light and Golden Hour share the mellow core."""
     assert moods.DEFAULT_AFFINITY_MAP["Folk Rock"].keys() >= {"First Light", "Golden Hour"}
 
 
@@ -154,7 +154,7 @@ def test_mapped_styles_is_every_style_anywhere_in_the_map(db):
         assert moods.affinity(db, name).mapped_styles == everything
 
 
-# --- Overrides win (FR-15, FR-16) -----------------------------------------
+# --- Overrides win ---------------------------------------------------------
 
 
 def test_set_description_overrides_the_code_default(db):
@@ -205,7 +205,7 @@ def test_an_empty_submitted_map_is_an_override_not_a_reset_to_defaults(db):
     assert moods.affinity(db, "Peak").mapped_styles == frozenset()
 
 
-# --- Write-boundary validation (FR-16, RFC section 12) --------------------
+# --- Write-boundary validation ---------------------------------------------
 
 
 def test_set_affinity_map_rejects_an_unknown_mood_name(db):

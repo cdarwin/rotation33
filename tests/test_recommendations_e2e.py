@@ -53,7 +53,7 @@ def test_a_real_recommendation_comes_back_from_the_real_collection(db):
 def test_every_mood_finds_something_in_this_collection(db, mood):
     """A real collection should not leave any of the five moods empty-handed.
 
-    If one ever does, that is a signal about the affinity map's coverage (FR-18)
+    If one ever does, that is a signal about the affinity map's coverage
     rather than about the facade, which is exactly why it is worth asserting.
     """
     _, result = e2e_demo.run(db, mood, NOW)
@@ -84,7 +84,7 @@ def test_a_multi_pressing_album_becomes_one_release_with_two_instances(db):
 
 
 def test_regenerating_over_the_real_collection_repeats_nothing(db):
-    """FR-9 end to end, on real data rather than a synthetic pool."""
+    """Regenerate end to end, on real data rather than a synthetic pool."""
     total, first = e2e_demo.run(db, moods.HEADS_DOWN, NOW)
     session_id = sessions.current(db).id
 

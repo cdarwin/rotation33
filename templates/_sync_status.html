@@ -1,5 +1,5 @@
 {# While a run is in progress this element re-fetches and replaces itself once a
-   second (FR-1). When the run is not running it carries no trigger, so polling
+   second. When the run is not running it carries no trigger, so polling
    stops on its own. #}
 <div class="sync-status"
      {% if run and run.status.value == 'running' %}

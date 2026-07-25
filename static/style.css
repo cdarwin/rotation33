@@ -2,7 +2,7 @@
  *
  * The D7 decision, made concrete: one hand-written stylesheet, mobile-first,
  * custom properties for the palette, flexbox and grid for layout, no
- * preprocessor and no build step. NFR-3 is met per component here rather than
+ * preprocessor and no build step. Responsiveness is met per component here rather than
  * in a styling pass at the end.
  *
  * Breakpoints (min-width, mobile-first):

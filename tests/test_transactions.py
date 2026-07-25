@@ -1,4 +1,4 @@
-"""The transaction-framing convention itself (RFC section 10).
+"""The transaction-framing convention itself.
 
 Components never commit; the caller frames the unit of work. These tests pin
 that convention so a later change that reintroduces an internal commit, or

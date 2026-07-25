@@ -3,7 +3,7 @@
 
 {% block content %}
   {% if collection_empty %}
-    {# FR-19: an empty collection leads with a sync, not an empty picker. #}
+    {# An empty collection leads with a sync, not an empty picker. #}
     <section class="panel empty-collection">
       <h1>Nothing here yet</h1>
       <p class="lede">Your collection is empty. Sync it from Discogs to get started.</p>
@@ -15,7 +15,7 @@
       <form method="post" action="{{ url_for('session_start') }}" class="start-form">
         <fieldset class="mood-choices">
           <legend>Mood</legend>
-          {# FR-3: pre-select the time-appropriate mood. #}
+          {# Pre-select the time-appropriate mood. #}
           {% for mood in moods %}
             <label class="mood-choice">
               <input type="radio" name="mood" value="{{ mood.name }}"

@@ -1,8 +1,8 @@
 """Phase 3: sittings, plays, and release-level recency.
 
 The assertions that matter here are `latest_plays` being one entry per release
-(the facade's single recency read), FR-12b's "current session only" removal
-immediately shrinking that set, FR-2a's retired-instance plays still counting,
+(the facade's single recency read), "current session only" removal immediately
+shrinking that set, a retired instance's plays still counting,
 and the independence from `records` that the denormalized `release_id` buys.
 """
 
@@ -162,7 +162,7 @@ def test_latest_plays_spans_every_session_ever(db):
 
 
 def test_a_retired_instances_plays_still_contribute_to_release_recency(db, session):
-    """FR-2a: a sold copy keeps its play history, and the album stays 'recently played'.
+    """A sold copy keeps its play history, and the album stays "recently played".
 
     Set up through `records` so the retirement is real, then assert `sessions`
     answers the recency question without consulting it at all. This is exactly
@@ -197,7 +197,7 @@ def test_a_retired_instances_plays_still_contribute_to_release_recency(db, sessi
     assert sessions.latest_plays(db) == {"m1": at(days=-1)}  # the recency is not
 
 
-# --- remove_play (FR-12b) --------------------------------------------------
+# --- remove_play -----------------------------------------------------------
 
 
 def test_remove_play_deletes_it_from_the_session_log(db, session):
@@ -222,7 +222,7 @@ def test_remove_play_falls_back_to_the_previous_play_of_the_same_release(db, ses
 
 
 def test_remove_play_refuses_a_play_from_a_non_current_session(db):
-    """Only the active session is editable; earlier history is not (FR-12b)."""
+    """Only the active session is editable; earlier history is not."""
     old = sessions.start(db, "Peak", T0)
     play = sessions.log_play(db, old.id, "i1", "m1", at(minutes=5))
     sessions.start(db, "After Dark", at(hours=3))  # old is no longer current

@@ -1,16 +1,15 @@
 """Background Discogs sync: fetch the collection, upsert via records, cache art,
 flag retirements, report progress.
 
-The design lives in architecture RFC section 9; the parts that are easy to get
-wrong, and why they are the way they are:
+The parts that are easy to get wrong, and why they are the way they are:
 
 - **One run at a time, guarded by a module lock, released in a `finally`.** A
   non-blocking `acquire()` means a second trigger no-ops rather than starting a
   concurrent sync. The lock is released in a `finally` covering the whole thread
   body, because releasing only on success would strand it for the life of the
-  process if the thread raised, leaving sync dead with nothing on screen (D2).
+  process if the thread raised, leaving sync dead with nothing on screen.
 
-- **Two sessions, and the split is the point (D8).** A long-lived *data* session
+- **Two sessions, and the split is the point.** A long-lived *data* session
   stays open across the whole fetch and commits once at the end, so a partial or
   failed fetch rolls back and writes no half-collection. A short-lived
   *progress* session commits `sync_run` per page. They cannot be one session:
@@ -58,7 +57,7 @@ class SyncStatus(Enum):
 
 @dataclass(frozen=True)
 class SyncRun:
-    """The latest sync's state, for progress polling and 'last synced' (FR-1)."""
+    """The latest sync's state, for progress polling and "last synced"."""
 
     id: int
     status: SyncStatus
@@ -69,7 +68,7 @@ class SyncRun:
     error: str | None
 
 
-# --- Storage (architecture RFC section 7) ----------------------------------
+# --- Storage ---------------------------------------------------------------
 
 
 class _SyncRunRow(infra.Base):
@@ -122,8 +121,8 @@ def _make_collection(client=None):
 
 
 def _is_vinyl(item: dict) -> bool:
-    """Kept if *any* format is Vinyl (RFC section 9 step 2), so an LP-plus-CD
-    edition survives rather than being dropped for the CD it also ships."""
+    """Kept if *any* format is Vinyl, so an LP-plus-CD edition survives rather
+    than being dropped for the CD it also ships."""
     formats = item["basic_information"].get("formats") or []
     return any(f.get("name") == "Vinyl" for f in formats)
 
@@ -142,8 +141,8 @@ def _description(basic: dict) -> str | None:
 
     The distinguishing detail — colour, edition — lives in `formats[].text`. The
     format `descriptions` ("LP", "Album") are the same across pressings and do
-    not tell two copies apart (research doc section 4). So prefer the free text,
-    and fall back to the descriptions only when a pressing carries none.
+    not tell two copies apart, so prefer the free text and fall back to the
+    descriptions only when a pressing carries none.
     """
     texts = [f["text"].strip() for f in basic.get("formats") or [] if (f.get("text") or "").strip()]
     if texts:
@@ -153,10 +152,11 @@ def _description(basic: dict) -> str | None:
 
 
 def _accumulate(grouped: dict[str, records.Release], item: dict) -> None:
-    """Fold one vinyl instance into its release, creating the release on first
-    sight. Grouping calls `records.release_id` rather than restating the rule,
-    so the two definitions of album identity cannot drift and re-key the
-    collection (RFC section 9 step 3)."""
+    """Fold one vinyl instance into its release, creating it on first sight.
+
+    Calls `records.release_id` rather than restating the rule, so the two
+    definitions of album identity cannot drift and re-key the collection.
+    """
     basic = item["basic_information"]
     rid = records.release_id(basic.get("master_id"), basic["id"])
     release = grouped.get(rid)
@@ -193,7 +193,7 @@ def _http_get(url: str) -> bytes:
 
 def _cache_cover(release: records.Release, fetch) -> None:
     """Download the cover to its release-id-named file. A single failure is
-    logged and skipped, never fatal, and the old file is kept (RFC section 9)."""
+    logged and skipped, never fatal, and the old file is kept."""
     path = records.cover_file(release.id)
     try:
         data = fetch(release.cover_source_url)
@@ -273,7 +273,7 @@ def _run(collection, run_id: int | None = None, fetch=_http_get) -> None:
             if release.cover_source_url and (stale_cover or not records.cover_file(rid).exists()):
                 wanted_covers.append(release)  # noted, not fetched; see below
 
-        # Only on a complete fetch, inside the one data transaction (RFC section 9).
+        # Only on a complete fetch, inside the one data transaction.
         records.reconcile_retirements(data, present_ids)
         data.commit()
     except Exception as exc:
@@ -306,9 +306,9 @@ _lock = threading.Lock()
 
 
 def trigger(client=None) -> bool:
-    """Start a sync in a background thread (FR-1). Returns False, no-op, if one
-    is already running: a non-blocking lock, since two threaded requests can
-    interleave between a DB check and a write (RFC section 9).
+    """Start a sync in a background thread. Returns False, no-op, if one is
+    already running: a non-blocking lock, since two threaded requests can
+    interleave between a DB check and a write.
 
     The run row is opened here, synchronously, before the thread is spawned, so a
     page that renders right after this returns already sees a `running` row and
@@ -354,7 +354,7 @@ def reconcile_orphaned_runs(db: Session) -> int:
     """Mark any run still `running` as failed. Called once at app startup: the
     lock guards concurrency within a process but not a process killed mid-sync,
     which would otherwise leave a run `running` forever and a bar polling it
-    (RFC section 9). Returns how many were reconciled. Caller frames the txn."""
+    Returns how many were reconciled. The caller frames the transaction."""
     orphans = list(db.scalars(select(_SyncRunRow).where(_SyncRunRow.status == SyncStatus.RUNNING)))
     for row in orphans:
         row.status = SyncStatus.FAILED

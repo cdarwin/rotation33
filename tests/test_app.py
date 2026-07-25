@@ -12,7 +12,7 @@ import sync
 
 @pytest.fixture
 def client(data_dir):
-    # create_app reconciles orphaned sync runs at startup (RFC section 9), so the
+    # create_app reconciles orphaned sync runs at startup, so the
     # schema has to exist first. Production runs `alembic upgrade head` before
     # the factory; the test builds the same schema on the app's own database.
     engine = infra.init_engine()
@@ -47,7 +47,7 @@ def test_factory_reconciles_a_run_left_running_by_a_crash(data_dir):
             )
         )
 
-    app_module.create_app()  # reconciles orphaned runs at startup (RFC section 9)
+    app_module.create_app()  # reconciles orphaned runs at startup
 
     with infra.SessionLocal() as s:
         assert sync.latest(s).status is sync.SyncStatus.FAILED

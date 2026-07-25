@@ -33,7 +33,7 @@ def candidate(release_id, styles=("Ambient",), days=0):
 def affinity(weights=None, mapped=None):
     """An Affinity whose mapped_styles defaults to exactly the weighted styles.
 
-    Passing `mapped` explicitly is how a test builds the FR-18 distinction: a
+    Passing `mapped` explicitly is how a test builds the distinction: a
     style that is mapped-but-zero versus one that is absent from the map entirely.
     """
     weights = {"Ambient": 0.9} if weights is None else weights
@@ -159,7 +159,7 @@ class TestInvariants:
         assert set(drawn) == {"fits", "also-fits"}
 
     def test_matching_keeps_a_candidate_whose_only_style_is_unmapped(self):
-        # FR-18: unmapped means eligible everywhere, even for a mood that weights
+        # Unmapped means eligible everywhere, even for a mood that weights
         # nothing it carries.
         mood = affinity(weights={"Ambient": 0.9}, mapped={"Ambient", "Dub"})
         unmapped = candidate("obscure", styles=("Hauntology",))
@@ -174,7 +174,7 @@ class TestInvariants:
         assert picker.matching([zero], mood) == []
 
     def test_matching_uses_the_best_style_not_the_worst(self):
-        # FR-8: one unrelated tag alongside a great-fit tag must not disqualify.
+        # One unrelated tag alongside a great-fit tag must not disqualify.
         mood = affinity(weights={"Ambient": 0.9}, mapped={"Ambient", "Thrash"})
         mixed = candidate("mixed", styles=("Thrash", "Ambient"))
 
@@ -192,7 +192,8 @@ class TestInvariants:
     def test_matching_keeps_a_candidate_with_no_styles_at_all(self):
         # Unclassified, not disqualified. Dropping it would exclude the release
         # from every mood forever with nothing on screen to explain it, which is
-        # the failure FR-18 exists to prevent. Real collections contain these.
+        # the failure the unmapped rule exists to prevent. Real collections
+        # contain these.
         bare = candidate("bare", styles=())
 
         assert picker.matching([bare], affinity()) == [bare]
@@ -229,7 +230,7 @@ class TestInvariants:
 
 
 class TestPurity:
-    """NFR-5: the engine is swappable because it depends on nothing here."""
+    """The engine is swappable because it depends on nothing here."""
 
     def test_picker_imports_only_stdlib(self):
         source = Path(picker.__file__).read_text()

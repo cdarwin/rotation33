@@ -3,7 +3,7 @@
 Run once, by hand, with DISCOGS_TOKEN and DISCOGS_USERNAME set. Read-only: it
 walks the collection and writes what it sees. Everything downstream then builds
 and tests offline against the file, which is what keeps the critical path off an
-external service (execution plan section 2).
+external service.
 
     python tools/capture_fixture.py
 
@@ -21,7 +21,7 @@ import discogs_client
 
 OUT = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "collection.json"
 
-# Only the listing fields the sync actually reads (RFC section 9). Capturing the
+# Only the listing fields the sync actually reads. Capturing the
 # whole payload would bloat the fixture and bury the shapes that matter.
 KEEP_BASIC = ("id", "master_id", "title", "year", "formats", "artists", "cover_image", "styles")
 

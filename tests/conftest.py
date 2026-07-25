@@ -2,7 +2,7 @@
 
 Each test gets its own SQLite file under `tmp_path` and a fresh schema, so
 there is no shared state and no ordering dependency between tests. The database
-is real; the ORM is never mocked (execution plan section 6).
+is real; the ORM is never mocked.
 """
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ def begin(engine):
             records.upsert(db, release)
         # committed here; rolled back instead if the block raised; closed either way
 
-    This is the same convention the view layer uses (RFC section 10), so a test
+    This is the same convention the view layer uses, so a test
     exercises components through the exact transaction framing production does.
     Reach for it wherever a commit boundary is part of what is under test.
     """

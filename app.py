@@ -1,13 +1,13 @@
 """Flask app factory, request session lifecycle, and routes.
 
-Thin views over the components (RFC section 10): a view may join across
-components for display but never implements a rule, which lives in a facade.
-Reads use the request-scoped `db()` session; writes frame a unit of work with
-`with write() as db:`, so commit and rollback are structural (RFC section 10).
+Thin views: a view may join across components for display but never implements
+a rule, which lives in a facade. Reads use the request-scoped `db()` session;
+writes frame a unit of work with `with write() as db:`, so commit and rollback
+are structural.
 
-The two htmx interactions the plan calls for are the regenerate swap (FR-9) and
-the sync progress poll (FR-1). Everything else is a plain form post with a
-redirect, which works without JavaScript and keeps the surface small.
+Two htmx interactions, the regenerate swap and the sync progress poll.
+Everything else is a plain form post with a redirect, which works without
+JavaScript and keeps the surface small.
 """
 
 from __future__ import annotations
@@ -44,13 +44,13 @@ def create_app() -> Flask:
 
     # A process killed mid-sync leaves a sync_run stuck at `running`, which the
     # progress bar would poll forever. The in-process lock cannot cover a
-    # restart, so the factory reconciles orphans once at startup (RFC section 9).
+    # restart, so the factory reconciles orphans once at startup.
     with write() as startup:
         sync.reconcile_orphaned_runs(startup)
 
     app = Flask(__name__)
     # Signs the flash-message cookie. A per-process key is fine: one worker
-    # (RFC section 14), single user, and flashes only need to survive a redirect.
+    # single user, and flashes only need to survive a redirect.
     app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(32)
 
     @app.errorhandler(OperationalError)
@@ -58,7 +58,7 @@ def create_app() -> Flask:
         """SQLite refused a write because something else held the lock.
 
         WAL gives concurrent readers but one writer, so a request write can lose
-        to the sync thread's commit and exhaust `busy_timeout` (RFC section 12).
+        to the sync thread's commit and exhaust `busy_timeout`.
         The transaction has already rolled back by the time this runs, so nothing
         is half-written; what is left is telling the user rather than showing
         them a traceback. Retrying is safe and usually works, because the sync
@@ -139,7 +139,7 @@ def create_app() -> Flask:
         keep = request.form.getlist("keep")  # release ids the user pinned
         with write() as tx:
             recommendations.generate(tx, session.id, infra.now(), keep=keep)
-        # htmx swaps just the recommendations panel back in (FR-9).
+        # htmx swaps just the recommendations panel back in.
         picks = _current_picks(db(), session)
         return render_template(
             "_picks.html",
@@ -167,7 +167,7 @@ def create_app() -> Flask:
     @app.post("/session/remove/<play_id>")
     def session_remove(play_id: str):
         with write() as tx:
-            sessions.remove_play(tx, play_id)  # enforces current-session-only (FR-12b)
+            sessions.remove_play(tx, play_id)  # enforces current-session-only
         return redirect(url_for("session_view", q=request.form.get("q", "")))
 
     # --- Condition --------------------------------------------------------
@@ -198,7 +198,7 @@ def create_app() -> Flask:
             window_days=int(recommendations.window(db()).days),
             moods=moods.choices(db()),
             affinity_json=json.dumps(moods.affinity_map(db()), indent=2, sort_keys=True),
-            unmapped=sorted(present - mapped),  # FR-18 review list
+            unmapped=sorted(present - mapped),  # styles nobody has classified
         )
 
     @app.post("/settings/window")
@@ -252,14 +252,14 @@ def create_app() -> Flask:
 
     @app.route("/sync/progress")
     def sync_progress() -> str:
-        # htmx polls this while a sync runs (FR-1).
+        # htmx polls this while a sync runs.
         return render_template("_sync_status.html", run=sync.latest(db()))
 
     @app.post("/sync/retire")
     def sync_retire():
         instance_ids = request.form.getlist("instance_id")
         with write() as tx:
-            records.confirm_retirement(tx, instance_ids)  # FR-2a
+            records.confirm_retirement(tx, instance_ids)
         flash(f"Retired {len(instance_ids)}.")
         return redirect(url_for("sync_page"))
 
@@ -267,8 +267,8 @@ def create_app() -> Flask:
 
     @app.route("/covers/<path:filename>")
     def cover(filename: str):
-        # Served from the data volume, not the static dir (RFC section 7). The
-        # URL scheme matches records._served_url: /covers/<release-id>.jpg.
+        # Served from the data volume, not the static dir. The URL scheme
+        # matches records._served_url: /covers/<release-id>.jpg.
         return send_from_directory(infra.covers_dir(), filename)
 
     return app
@@ -320,7 +320,7 @@ def _empty_message(reason: recommendations.EmptyReason | None) -> str | None:
 
 
 def _current_picks(session_db: Session, session: sessions.Session) -> list:
-    """The active batch minus anything already played this session (spec section 6).
+    """The active batch minus anything already played this session.
 
     A logged pick slides from Recommendations to the session log without a
     regenerate, by being filtered out here. The stored batch is untouched, and
@@ -335,8 +335,7 @@ def _session_log(session_db: Session, session: sessions.Session | None) -> list[
     """The current session's plays, joined to records for artwork and titles.
 
     This is display composition, which the view owns: `sessions.plays` returns
-    ids, and the join to `records` for a title lives here, not in a facade
-    (RFC section 3).
+    ids, and the join to `records` for a title lives here, not in a facade.
     """
     if session is None:
         return []

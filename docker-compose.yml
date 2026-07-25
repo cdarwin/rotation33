@@ -1,7 +1,7 @@
 services:
   app:
     build: .
-    # LAN is the trust boundary (NFR-2); nothing here is exposed beyond it.
+    # LAN is the trust boundary; nothing here is exposed beyond it.
     ports:
       - "8000:8000"
     environment:

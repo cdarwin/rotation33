@@ -1,15 +1,13 @@
 """A listening sitting and the plays logged into it; release-level recency.
 
 A session stays current until the next one starts. There is no midnight
-rollover and no calendar day anywhere in this module (architecture RFC section
-6): `start` always creates a new session, and the prior one simply stops being
-the latest.
+rollover and no calendar day anywhere in this module: `start` always creates a
+new session, and the prior one simply stops being the latest.
 
-`Play` carries a denormalized `release_id`. That is what lets this module answer
-the recency question from its own table, and it is why `sessions` does not
-import `records` (RFC sections 3 and 5.3). A test asserts the absence of that
-import, because the denormalization only earns its keep if the independence it
-buys is actually kept.
+`Play` carries a denormalized `release_id`. That lets this module answer the
+recency question from its own table, and is why it does not import `records`. A
+test asserts the absence of that import, because the denormalization only earns
+its keep if the independence it buys is actually kept.
 
 Conventions follow `records`: private ORM rows, a session-bound `_Mapper` as the
 only code touching a table, rules in the public functions, and nothing commits.
@@ -42,7 +40,7 @@ class UnknownSession(Exception):
 
 
 class NotCurrentSession(Exception):
-    """Raised when a play outside the current session is removed (FR-12b).
+    """Raised when a play outside the current session is removed.
 
     Only the active session is editable; earlier history is not. Refusing here
     rather than in the view keeps the rule with the data it protects.
@@ -76,7 +74,7 @@ def _new_id() -> str:
     return uuid.uuid4().hex
 
 
-# --- Storage (RFC section 7) ----------------------------------------------
+# --- Storage ---------------------------------------------------------------
 
 
 class _SessionRow(infra.Base):
@@ -97,8 +95,8 @@ class _PlayRow(infra.Base):
     id: Mapped[str] = mapped_column(String, primary_key=True)
     session_id: Mapped[str] = mapped_column(ForeignKey("session.id"), index=True)
     instance_id: Mapped[str]
-    # Denormalized from the instance at log time (RFC section 5.3). It is what
-    # keeps a retired instance's plays contributing to release recency (FR-2a):
+    # Denormalized from the instance at log time. It is what keeps a retired
+    # instance's plays contributing to release recency:
     # the release id is recorded here and survives whatever later happens to the
     # copy that was played. Indexed because `latest_plays` groups on it.
     release_id: Mapped[str] = mapped_column(String, index=True)
@@ -189,14 +187,14 @@ class _Mapper:
         self._db.delete(self._db.get(_PlayRow, play_id))
 
 
-# --- Public surface (architecture RFC section 5.3) -------------------------
+# --- Public surface --------------------------------------------------------
 
 
 def current(db: DbSession) -> Session | None:
     """The latest session. None only on a virgin database.
 
     A long-idle session staying current is intended, not a bug: a session ends
-    when the next one starts (RFC section 6), and the open-app flow leads with
+    when the next one starts, and the open-app flow leads with
     starting one.
     """
     return _Mapper(db).current()
@@ -205,15 +203,13 @@ def current(db: DbSession) -> Session | None:
 def get(db: DbSession, session_id: str) -> Session:
     """One session by id. Raises rather than returning None.
 
-    Added for the `recommendations` facade, which is handed a `session_id` and
-    needs the mood behind it (RFC section 5.4 step 1). The RFC's section 5.3
-    interface list omits this, but every operation the facade performs on a
-    session is keyed by id rather than by "the current one", and conflating the
-    two would make `generate` fail on a valid-but-not-latest session.
+    For the `recommendations` facade, which is handed a `session_id` and needs
+    the mood behind it. Keyed by id rather than by "the current one", since
+    conflating the two would make `generate` fail on a valid-but-not-latest
+    session.
 
-    Optional-vs-raising follows `moods.get`, not `records.get`: a session id
-    only ever arrives from a session this system minted, so a miss is a caller
-    bug rather than a user state.
+    Raises rather than returning None because a session id only ever arrives
+    from a session this system minted, so a miss is a caller bug.
     """
     session = _Mapper(db).get(session_id)
     if session is None:
@@ -224,9 +220,8 @@ def get(db: DbSession, session_id: str) -> Session:
 def start(db: DbSession, mood: str, now: datetime) -> Session:
     """Begin a new sitting. Always creates; the prior session stops being latest.
 
-    The mood name is not validated against `moods` here: this module does not
-    import other components (RFC section 3), and the view only ever offers the
-    five.
+    The mood name is not validated against `moods` here: this module imports no
+    other components, and the view only ever offers the five.
     """
     session = Session(id=_new_id(), mood=mood, started_at=now)
     _Mapper(db).add_session(session)
@@ -240,7 +235,7 @@ def log_play(
     release_id: ReleaseId,
     played_at: datetime,
 ) -> Play:
-    """Log one copy as played into a session (FR-11).
+    """Log one copy as played into a session.
 
     Both ids are recorded: the instance because that is what actually played,
     and the release because recency is release-level and must outlive the copy.
@@ -260,7 +255,7 @@ def log_play(
 
 
 def remove_play(db: DbSession, play_id: str) -> None:
-    """Delete a play from the *current* session (FR-12b).
+    """Delete a play from the *current* session.
 
     Removal is outright; there is no edit. Because recency is derived from the
     remaining plays, deleting one immediately restores that release's
@@ -280,11 +275,12 @@ def remove_play(db: DbSession, play_id: str) -> None:
 
 
 def plays(db: DbSession, session_id: str) -> list[Play]:
-    """This session's plays, oldest first: the session log and FR-9's exclusion.
+    """This session's plays, oldest first: the session log, and the exclusion
+    that stops a regenerate re-offering something already played.
 
     Returns ids only. The view joins to `records` for artwork and titles, since
     a component enriches results only from what it already depends on, and this
-    one depends on nothing (RFC section 3).
+    one depends on nothing.
     """
     return _Mapper(db).plays(session_id)
 
@@ -298,6 +294,6 @@ def latest_plays(db: DbSession) -> dict[ReleaseId, datetime]:
     "when did this album last play".
 
     A retired instance's plays still appear here, because a play stores its own
-    `release_id` and this never looks at the instance (FR-2a).
+    `release_id` and this never looks at the instance.
     """
     return _Mapper(db).latest_plays()

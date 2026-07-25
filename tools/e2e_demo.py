@@ -3,8 +3,8 @@
 Loads the 75-item Discogs fixture, maps it into `records` exactly the way `sync`
 will (the vinyl filter and the `m<master_id>` / `r<release_id>` identity rule),
 starts a session with a mood, and generates a recommendation. No Discogs token
-and no network: the fixture is the contract that keeps the critical path offline
-(execution plan section 2).
+and no network: the fixture is the contract that keeps the critical path
+offline and testable.
 
 This is deliberately not a preview of `sync`. It skips cover art, progress
 reporting, retirement reconciliation and failure isolation, all of which are
@@ -39,7 +39,7 @@ FIXTURE = ROOT / "tests" / "fixtures" / "collection.json"
 
 
 def is_vinyl(item: dict) -> bool:
-    """The RFC section 9 step 2 rule: kept if *any* format is Vinyl.
+    """Kept if *any* format is Vinyl.
 
     `any` rather than `all` so an LP-plus-CD edition is kept rather than dropped
     for the CD it also ships.

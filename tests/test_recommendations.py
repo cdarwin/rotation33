@@ -99,7 +99,7 @@ def test_generate_excludes_non_recommendable_releases(db):
     assert "m900" not in {r.id for r in result.releases}
 
 
-# --- FR-9: a regenerate repeats nothing ------------------------------------
+# --- A regenerate repeats nothing ------------------------------------------
 
 
 def test_regenerate_excludes_releases_already_shown(db):
@@ -144,7 +144,7 @@ def test_regenerating_until_exhaustion_ends_in_session_exhausted(db):
 
 
 def test_exclusion_is_scoped_to_its_own_session(db):
-    """A new sitting starts clean: FR-9's exclusions are per-session."""
+    """A new sitting starts clean: the exclusions are per-session."""
     collection(db, 12)
     first_sid = a_session(db)
     shown = recommendations.generate(db, first_sid, NOW, rng()).releases
@@ -157,11 +157,11 @@ def test_exclusion_is_scoped_to_its_own_session(db):
     assert {r.id for r in again.releases} & {r.id for r in shown}
 
 
-# --- FR-4: the recency window ---------------------------------------------
+# --- The recency window ----------------------------------------------------
 
 
 def test_recency_window_excludes_a_play_just_inside_it(db):
-    """2d23h ago is inside a 3-day window, so the release is out (RFC section 6)."""
+    """2d23h ago is inside a 3-day window, so the release is out."""
     collection(db, 4)
     old_sid = a_session(db)
     played(db, old_sid, "m100", NOW - timedelta(days=2, hours=23))
@@ -239,7 +239,7 @@ def test_active_is_empty_before_anything_is_generated(db):
     result = recommendations.active(db, a_session(db))
 
     assert result.releases == []
-    # "Nothing generated yet" is not FR-10's explained-empty state.
+    # "Nothing generated yet" is not the explained-empty state.
     assert result.reason is None
 
 
@@ -271,7 +271,7 @@ def test_active_drops_a_release_that_vanished_since_it_was_drawn(db):
 
 @pytest.mark.parametrize("size", [1, 2])
 def test_a_thin_pool_yields_fewer_picks_with_no_reason(db, size):
-    """FR-4's "3 to 5" is not a floor (RFC section 8): show what qualifies."""
+    """Three picks is not a floor: show what qualifies."""
     collection(db, size)
     result = recommendations.generate(db, a_session(db), NOW, rng())
 
@@ -279,7 +279,7 @@ def test_a_thin_pool_yields_fewer_picks_with_no_reason(db, size):
     assert result.reason is None
 
 
-# --- FR-10: all three empty reasons ---------------------------------------
+# --- The empty reasons -----------------------------------------------------
 
 
 def test_nothing_available_when_the_collection_is_empty(db):
@@ -301,7 +301,7 @@ def test_nothing_available_when_every_release_is_unplayable(db):
 def test_no_fit_when_records_exist_but_none_suit_the_mood(db):
     """Mapped styles that carry zero weight for this mood: present, but no fit.
 
-    Deliberately not an unmapped style, which FR-18 makes eligible everywhere and
+    Deliberately not an unmapped style, which is eligible everywhere and
     which would therefore land in ALL_RECENT instead.
     """
     collection(db, 4, styles=("Funk", "Disco"))  # both mapped, both Peak-only
@@ -368,7 +368,7 @@ def test_unknown_session_raises(db):
 
 def test_unknown_mood_raises(db):
     """`sessions.start` cannot validate the mood (it imports no components), so a
-    bad name survives to here. It is a fault, not an FR-10 empty state: rendering
+    bad name survives to here. It is a fault, not an empty state: rendering
     a typo as "nothing fits this mood" would hide the bug. Validating at the POST
     boundary is the view layer's job."""
     collection(db, 4)
@@ -384,7 +384,7 @@ def test_active_on_an_unknown_session_is_simply_empty(db):
     assert recommendations.active(db, "no-such-session").releases == []
 
 
-# --- FR-14: the recency window setting ------------------------------------
+# --- The recency window setting --------------------------------------------
 
 
 def test_window_defaults_to_three_days(db):
@@ -400,7 +400,7 @@ def test_set_window_persists(db):
 
 
 def test_window_of_zero_is_allowed_and_excludes_nothing_by_recency(db):
-    """Zero means cross-session immediate repeats become possible (RFC section 6)."""
+    """Zero means cross-session immediate repeats become possible."""
     recommendations.set_window(db, 0)
     assert recommendations.window(db) == timedelta(0)
 
@@ -500,7 +500,7 @@ class TestKeep:
         second = recommendations.generate(db, sid, NOW, keep=keep, rng=rng())
         replaced = [r.id for r in second.releases[1:]]
 
-        # The refilled slots are none of the previously-shown picks (FR-9 still
+        # The refilled slots are none of the previously-shown picks (exclusion still
         # excludes shown), so they are genuinely new.
         assert set(replaced).isdisjoint({r.id for r in first.releases})
 
@@ -544,7 +544,7 @@ def test_an_empty_generate_does_not_resurrect_the_previous_batch(db):
     """An empty generate used to write no rows at all.
 
     `active` then found the *previous* batch and showed picks the user had
-    already rejected, with the FR-10 explanation gone. A page reload after an
+    already rejected, with the explanation gone. A page reload after an
     empty regenerate must show the explanation, not stale picks.
     """
     collection(db, 3)
@@ -561,7 +561,7 @@ def test_an_empty_generate_does_not_resurrect_the_previous_batch(db):
 
 
 def test_active_carries_the_reason_that_generate_persisted(db):
-    """FR-10's "why" has to survive the round trip, or nothing renders it."""
+    """The "why" has to survive the round trip, or nothing renders it."""
     sid = a_session(db, moods.HEADS_DOWN)
 
     generated = recommendations.generate(db, sid, NOW, rng())
@@ -571,7 +571,7 @@ def test_active_carries_the_reason_that_generate_persisted(db):
 
 
 def test_active_has_no_reason_before_anything_is_generated(db):
-    """ "Nothing generated yet" is not FR-10's "nothing qualifies"."""
+    """ "Nothing generated yet" is not "nothing qualifies"."""
     sid = a_session(db)
 
     result = recommendations.active(db, sid)
@@ -581,7 +581,7 @@ def test_active_has_no_reason_before_anything_is_generated(db):
 
 
 def test_a_marker_row_does_not_count_as_a_release_shown(db):
-    """An empty batch showed the user nothing, so it used nothing up (FR-9)."""
+    """An empty batch showed the user nothing, so it used nothing up."""
     collection(db, 3)
     sid = a_session(db)
     recommendations.generate(db, sid, NOW, rng())  # shows all 3

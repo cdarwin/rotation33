@@ -1,7 +1,7 @@
 """Guards the captured Discogs fixture.
 
 The fixture is the contract that lets every later phase, sync included, be built
-and tested with no Discogs token (execution plan section 2). If it silently lost
+and tested with no Discogs token. If it silently lost
 one of the shapes below, the phase that depends on that shape would go green
 while testing nothing. These assertions are cheap and they fail loudly.
 """
@@ -26,7 +26,7 @@ def formats(item: dict) -> set[str]:
 
 
 def release_key(item: dict) -> str:
-    """The RFC section 5 identity rule, restated here so the fixture test does
+    """The identity rule, restated here so the fixture test does
     not depend on `records` (which does not exist until Phase 2)."""
     basic = item["basic_information"]
     master_id = basic.get("master_id")
@@ -61,7 +61,7 @@ def test_contains_a_multi_format_vinyl_plus_cd_item(items):
     """The `any(format == "Vinyl")` rule must keep an LP+CD edition.
 
     Hand-added: the live collection contains no such item, so this shape would
-    otherwise go untested (RFC section 9 flags it as unconfirmed).
+    otherwise go untested.
     """
     assert any({"Vinyl", "CD"} <= formats(i) for i in items)
 

@@ -1,5 +1,5 @@
 """Sync, exercised entirely against the captured fixture, no Discogs and no
-network. The fixture is the contract (execution plan section 2); the one live
+network. The fixture is the contract; the one live
 run is the Phase 5 exit gate, done by hand.
 
 The assertions read results from fresh sessions rather than the setup session,
@@ -197,7 +197,7 @@ class TestFailureIsolation:
 
         with read() as s:
             inst = next(i for i in records.get(s, MUTINY).instances if i.id == inst_id)
-            assert inst.is_playable is False  # condition flag untouched (FR-2)
+            assert inst.is_playable is False  # condition flag untouched
             assert inst.retirement_status is records.RetirementStatus.ACTIVE
             assert len(sessions.plays(s, session_id)) == 1  # play survives
 

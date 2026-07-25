@@ -2997,7 +2997,7 @@
       "instance_id": 2153670576
     },
     {
-      "_synthetic": "Hand-added: no Vinyl+CD item exists in the live collection, and the any(format == 'Vinyl') rule is untested without one. See RFC section 9.",
+      "_synthetic": "Hand-added: no Vinyl+CD item exists in the live collection, and the any(format == 'Vinyl') rule is untested without one.",
       "basic_information": {
         "artists": [
           {
