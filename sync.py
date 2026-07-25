@@ -203,29 +203,6 @@ def _cache_cover(release: records.Release, fetch) -> None:
         log.warning("cover download failed for %s, keeping any existing file", release.id)
 
 
-def _cache_covers(releases: list[records.Release], fetch) -> None:
-    """Download every wanted cover, *after* the data transaction has committed.
-
-    This runs outside the transaction on purpose, and the ordering is load
-    bearing. SQLAlchemy autoflushes before a query, so on a first sync the
-    `db.get` inside `records.upsert` flushes the previous release and the data
-    session takes SQLite's database-wide write lock on the very first album.
-    Downloading inside that loop therefore held the write lock for the entire
-    run: measured at 7.86s of a 7.87s sync against the 72-release fixture with
-    40ms stub downloads, and over real network latency a concurrent `log_play`
-    blew through the 5s `busy_timeout` and returned `database is locked`. A
-    first sync is exactly when every cover is missing, so it was the first-run
-    path that broke.
-
-    Deferring is safe because the covers are not collection data: `upsert`
-    records `cover_path` during the transaction and `records._served_url` renders
-    from the file's existence, so a release whose art has not landed yet (or ever)
-    shows the placeholder rather than a broken image.
-    """
-    for release in releases:
-        _cache_cover(release, fetch)
-
-
 # --- Progress (the short-lived committing session, D8) ---------------------
 
 
@@ -294,9 +271,7 @@ def _run(collection, run_id: int | None = None, fetch=_http_get) -> None:
             stale_cover = existing is None or existing.cover_source_url != release.cover_source_url
             records.upsert(data, release)
             if release.cover_source_url and (stale_cover or not records.cover_file(rid).exists()):
-                # Noted, not fetched. See _cache_covers for why the download
-                # cannot happen here.
-                wanted_covers.append(release)
+                wanted_covers.append(release)  # noted, not fetched; see below
 
         # Only on a complete fetch, inside the one data transaction (RFC section 9).
         records.reconcile_retirements(data, present_ids)
@@ -308,8 +283,20 @@ def _run(collection, run_id: int | None = None, fetch=_http_get) -> None:
     finally:
         data.close()
 
-    # After the commit, deliberately: see _cache_covers.
-    _cache_covers(wanted_covers, fetch)
+    # Outside the transaction, deliberately, and the ordering is load bearing.
+    # SQLAlchemy autoflushes before a query, so the `db.get` inside
+    # `records.upsert` flushes the previous release and the data session takes
+    # SQLite's database-wide write lock on the very first album of a cold sync.
+    # Downloading inside that loop held the lock for the entire run: measured at
+    # 7.86s of a 7.87s sync against the 72-release fixture with 40ms stub
+    # downloads, and over real latency a concurrent `log_play` blew through the
+    # 5s `busy_timeout` and got `database is locked`. A first sync is when every
+    # cover is missing, so it was the first-run path that broke. Deferring is
+    # safe because covers are not collection data: `upsert` records `cover_path`
+    # inside the transaction and `records._served_url` renders from the file's
+    # existence, so art that has not landed shows the placeholder.
+    for release in wanted_covers:
+        _cache_cover(release, fetch)
     _close_run(run_id, SyncStatus.COMPLETE)
 
 

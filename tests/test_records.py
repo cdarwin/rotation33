@@ -431,32 +431,6 @@ class TestOwnedInstances:
         assert [i.id for i in rel.owned_instances] == ["maybe"]
 
 
-class TestIsRecommendable:
-    """The predicate restates the mapper's WHERE clause, so pin them together."""
-
-    def test_it_agrees_with_the_recommendable_query(self, db):
-        records.upsert(db, release("m-ok", instances=(instance("i1"),)))
-        records.upsert(
-            db,
-            release("m-retired", instances=(instance("i2", status=RetirementStatus.RETIRED),)),
-        )
-        records.upsert(db, release("m-unplayable", instances=(instance("i3", playable=False),)))
-        records.upsert(
-            db,
-            release("m-pending", instances=(instance("i4", status=RetirementStatus.PENDING),)),
-        )
-        db.flush()
-
-        by_query = {r.id for r in records.recommendable(db)}
-        by_predicate = {r.id for r in records.browse(db) if records.is_recommendable(r)}
-
-        assert by_query == by_predicate
-        assert by_query == {"m-ok", "m-pending"}
-
-    def test_a_release_with_no_instances_is_not_recommendable(self):
-        assert not records.is_recommendable(release("m-empty"))
-
-
 def test_cover_url_survives_a_moved_data_dir(db, data_dir, monkeypatch, tmp_path):
     """`cover_path` holds an absolute path built from DATA_DIR at sync time.
 

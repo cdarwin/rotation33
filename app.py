@@ -13,7 +13,6 @@ redirect, which works without JavaScript and keeps the surface small.
 from __future__ import annotations
 
 import json
-import logging
 import os
 from contextlib import AbstractContextManager
 
@@ -38,8 +37,6 @@ import recommendations
 import records
 import sessions
 import sync
-
-log = logging.getLogger(__name__)
 
 
 def create_app() -> Flask:
@@ -67,7 +64,7 @@ def create_app() -> Flask:
         them a traceback. Retrying is safe and usually works, because the sync
         commits once and briefly.
         """
-        log.warning("database busy, asking the user to retry: %s", exc)
+        app.logger.warning("database busy, asking the user to retry: %s", exc)
         flash("The database was busy, most likely a sync finishing up. Try that again.")
         return redirect(request.referrer or url_for("home")), 503
 

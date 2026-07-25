@@ -172,11 +172,10 @@ class _Mapper:
             .order_by(_RecommendationRow.position)
         )
         rows = list(self._db.scalars(stmt))
-        ids = [r.release_id for r in rows if r.release_id is not None]
-        reason = next(
-            (EmptyReason(r.empty_reason) for r in rows if r.empty_reason is not None), None
+        marker = rows[0].empty_reason if rows else None
+        return [r.release_id for r in rows if r.release_id is not None], (
+            EmptyReason(marker) if marker else None
         )
-        return ids, reason
 
     def window_days(self) -> int | None:
         """The persisted override, or None when nothing has been set."""
@@ -186,34 +185,29 @@ class _Mapper:
     # --- writes ------------------------------------------------------------
 
     def add_batch(
-        self, session_id: str, release_ids: list[ReleaseId], generated_at: datetime
+        self,
+        session_id: str,
+        release_ids: list[ReleaseId],
+        generated_at: datetime,
+        reason: EmptyReason | None = None,
     ) -> None:
-        for position, rid in enumerate(release_ids):
+        """Persist a batch: a row per pick, or one marker row carrying `reason`.
+
+        A drew-nothing batch is still a batch. Writing the marker is what stops
+        the next read finding the *previous* batch and resurrecting picks the
+        user already rejected, and it is what carries the FR-10 explanation
+        across a page reload.
+        """
+        for position, rid in enumerate(release_ids or [None]):
             self._db.add(
                 _RecommendationRow(
                     session_id=session_id,
                     release_id=rid,
                     generated_at=generated_at,
                     position=position,
+                    empty_reason=None if rid else reason.value,
                 )
             )
-
-    def add_empty_batch(self, session_id: str, generated_at: datetime, reason: EmptyReason) -> None:
-        """Record that a generate happened and drew nothing, and why.
-
-        One marker row, so the empty outcome is as durable as a batch of picks:
-        a page reload after an empty regenerate shows the explanation rather than
-        resurrecting the batch before it.
-        """
-        self._db.add(
-            _RecommendationRow(
-                session_id=session_id,
-                release_id=None,
-                generated_at=generated_at,
-                position=0,
-                empty_reason=reason.value,
-            )
-        )
 
     def set_window_days(self, days: int) -> None:
         row = self._db.get(_WindowRow, _SINGLETON) or _WindowRow(id=_SINGLETON)
@@ -294,12 +288,10 @@ def generate(
     drawn = picker.draw(surviving, COUNT - len(kept), rng)
     batch = kept + drawn  # kept lead in display order, fresh draws follow
 
+    reason = _reason(pool, fit, recent) if not batch else None
+    _Mapper(db).add_batch(session_id, batch, now, reason)
     if not batch:
-        reason = _reason(pool, fit, recent)
-        _Mapper(db).add_empty_batch(session_id, now, reason)
         return RecommendationResult(releases=[], reason=reason)
-
-    _Mapper(db).add_batch(session_id, batch, now)
 
     # Built by filtering the pool already in hand, not by re-reading each id:
     # the rows were loaded a few lines ago and nothing has changed since.
@@ -381,14 +373,16 @@ def _reason(
 def active(db: Session, session_id: str) -> RecommendationResult:
     """The batch currently showing, re-hydrated. Empty when none has been drawn.
 
-    Unlike `generate` this has no pool in hand, so it re-reads each release.
     A release removed, retired or marked unplayable since the batch was drawn
     drops out and the batch shows fewer. That silent shrink is intended and is
     the only place a persisted pick can vanish: the alternative is leaving a
     record you have just sold sitting in the picks, and the user's next
-    regenerate resolves it anyway. `records.get` answers "does this id exist",
-    not "may it still be recommended", so the second question is asked
-    separately.
+    regenerate resolves it anyway.
+
+    Rehydrating from `recommendable` rather than by id is what makes that work
+    without a second definition of "may this be recommended": the batch is the
+    ids, the pool is the rule, and the answer is their intersection. One query
+    also replaces the five `records.get` calls this used to make.
 
     The `EmptyReason` is the one `generate` persisted with the batch, so an empty
     outcome survives a page reload with its explanation attached. `None` here
@@ -396,9 +390,10 @@ def active(db: Session, session_id: str) -> RecommendationResult:
     state from FR-10's "nothing qualifies" and reads as such: no message.
     """
     ids, reason = _Mapper(db).latest_batch(session_id)
-    hydrated = [records.get(db, rid) for rid in ids]
-    releases = [r for r in hydrated if r is not None and records.is_recommendable(r)]
-    return RecommendationResult(releases=releases, reason=reason)
+    eligible = {r.id: r for r in records.recommendable(db)}
+    return RecommendationResult(
+        releases=[eligible[rid] for rid in ids if rid in eligible], reason=reason
+    )
 
 
 def window(db: Session) -> timedelta:

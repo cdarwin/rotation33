@@ -113,7 +113,7 @@ def cover_file(rid: ReleaseId) -> Path:
     return infra.covers_dir() / f"{rid}.jpg"
 
 
-def _served_url(rid: ReleaseId, cover_path: str | None) -> str | None:
+def _served_url(rid: ReleaseId) -> str | None:
     """The static URL for a cached cover, or None if it is not on disk yet.
 
     Checking the file rather than trusting the column keeps a release whose art
@@ -121,15 +121,13 @@ def _served_url(rid: ReleaseId, cover_path: str | None) -> str | None:
     records the path at upsert but fetches the bytes afterwards, and a single
     art failure is skipped rather than fatal (RFC section 9).
 
-    The location is recomputed from the release id rather than read out of
-    `cover_path`, which holds an absolute path built from `DATA_DIR` as it stood
-    at the last sync. Trusting that column means every cover silently disappears
-    the day the volume moves, until someone happens to re-sync. `cover_path` is
-    still written as a record of where the bytes were put; it is not a lookup key.
+    The location comes from the release id, not from the `cover_path` column,
+    which holds an absolute path built from `DATA_DIR` as it stood at the last
+    sync: trusting it means every cover silently disappears the day the volume
+    moves. The column is still written as a record of where the bytes went; the
+    file on disk is the only thing consulted here.
     """
-    if cover_path and cover_file(rid).exists():
-        return f"/covers/{cover_file(rid).name}"
-    return None
+    return f"/covers/{cover_file(rid).name}" if cover_file(rid).exists() else None
 
 
 # --- Storage ---------------------------------------------------------------
@@ -212,7 +210,7 @@ class _Mapper:
             artist=r.artist,
             title=r.title,
             styles=list(r.styles or []),
-            cover_url=_served_url(r.id, r.cover_path),
+            cover_url=_served_url(r.id),
             year=r.year,
             instances=[cls._instance(i) for i in rows],
             cover_source_url=r.cover_source_url,
@@ -360,25 +358,6 @@ def get(db: Session, rid: ReleaseId) -> Release | None:
 def recommendable(db: Session) -> list[Release]:
     """Albums with at least one playable instance whose status is not RETIRED."""
     return _Mapper(db).recommendable()
-
-
-def is_recommendable(release: Release) -> bool:
-    """Whether a release already in hand would still pass `recommendable`.
-
-    The same rule, as a predicate over a loaded aggregate, for a caller holding a
-    Release that it did not get from `recommendable` — `recommendations.active`
-    re-reads a persisted batch by id and has to drop picks that have since been
-    retired or marked unplayable. Reading the whole collection back just to
-    intersect five ids would be the alternative.
-
-    This restates the mapper's WHERE clause in Python, so the two can drift.
-    `test_records.py` pins them against each other; keep that test if you touch
-    either.
-    """
-    return any(
-        i.is_playable and i.retirement_status is not RetirementStatus.RETIRED
-        for i in release.instances
-    )
 
 
 def pending_retirements(db: Session) -> list[Release]:

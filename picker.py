@@ -112,13 +112,13 @@ def draw(
     primitive. Weights are recomputed against the shrinking pool each round, so
     rank position keeps meaning the same thing after a winner is removed.
 
-    Candidates of *equal* staleness are shuffled before ranking. Rank position is
-    the draw weight and Python's sort is stable, so leaving ties in caller order
-    silently converts that order into a weighting. This is not a corner case: on
-    a freshly synced collection every release is never-played and therefore tied
-    at `timedelta.max`, and `records.recommendable` returns them sorted by
-    artist, which weighted the whole first-run experience toward the top of the
-    alphabet by up to 69x. Shuffling first makes a tie mean a tie.
+    Candidates of *equal* staleness are ordered randomly, by a `random()` second
+    sort key. Rank position is the draw weight and Python's sort is stable, so
+    leaving ties in caller order silently converts that order into a weighting.
+    Not a corner case: on a freshly synced collection every release is
+    never-played and therefore tied at `timedelta.max`, and
+    `records.recommendable` returns them sorted by artist, which weighted the
+    whole first-run experience toward the top of the alphabet by up to 69x.
 
     Returns `[]` on an empty pool and fewer than `count` when the pool runs out.
     Neither is an error: a thin pool yielding one or two picks is a valid result,
@@ -128,9 +128,8 @@ def draw(
         return []
 
     source = _rng if rng is None else rng
-    pool = list(candidates)
-    source.shuffle(pool)
-    pool.sort(key=lambda c: c.staleness, reverse=True)
+    # The random() second key is the tie-break; see the note above.
+    pool = sorted(candidates, key=lambda c: (c.staleness, source.random()), reverse=True)
     drawn: list[ReleaseId] = []
 
     while pool and len(drawn) < count:
