@@ -4,8 +4,7 @@
 
 **Status:** Draft (MVP scope)
 
-**Related documents:** [`recommendation-engine-design.md`](/docs/rfc/recommendation-engine-design.md),
-[`technical-architecture.md`](/docs/rfc/technical-architecture.md)
+**Related documents:** [`recommendation-engine-design.md`](/docs/rfc/recommendation-engine-design.md)
 
 ## 1. Overview
 

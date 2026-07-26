@@ -76,10 +76,11 @@ there's something to deploy.
 
 - [Product requirements](docs/prd/mvp.md) covers the scope, the moods, and the
   full set of requirements and user flows.
-- [Technical architecture](docs/rfc/technical-architecture.md) covers the
-  component design, storage, sync, and deployment.
 - [Recommendation engine design](docs/rfc/recommendation-engine-design.md)
   covers how suggestions are actually generated.
+
+The component design, storage layout and sync behaviour are documented in the
+modules themselves.
 
 ## Status
 

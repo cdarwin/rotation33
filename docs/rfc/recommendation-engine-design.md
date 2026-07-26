@@ -4,8 +4,7 @@
 
 **Status:** Request For Comments
 
-**Related documents:** [`mvp.md`](/docs/prd/mvp.md),
-[`technical-architecture.md`](/docs/rfc/technical-architecture.md)
+**Related documents:** [`mvp.md`](/docs/prd/mvp.md)
 
 ## Scope
 
@@ -16,11 +15,11 @@ access and no knowledge of dates, sessions, or regeneration.
 
 The surrounding orchestration (building the candidate pool, applying recency and
 per-session exclusion, persisting a batch, and choosing the FR-10 reason for an
-empty result) is the `recommendations` facade, specified in the architecture doc
-(Section 5.4). It is summarized here only as the engine's calling context.
+empty result) is the `recommendations` facade. It is summarized here only as
+the engine's calling context.
 
 The domain model (Release, Instance, Play, Session, Recommendation, the five
-moods) is settled in the PRD and the architecture doc. Recommendations are
+moods) is settled in the PRD. Recommendations are
 release-level: a pick is a Release, and the specific instance is chosen when a
 play is logged.
 
@@ -94,8 +93,8 @@ dict of `{mood: affinity}`, where affinity is a float in `[0, 1]`:
 
 A mood absent from a style's dict means affinity 0 for that mood via that style.
 It is not stored and is not an error. Validation (floats in `[0, 1]`, and every
-mood name known) happens where the map is written, in `moods.set_affinity_map`
-(architecture Section 5.2); the engine assumes a valid `Affinity`.
+mood name known) happens where the map is written, in `moods.set_affinity_map`;
+the engine assumes a valid `Affinity`.
 
 ### Unmapped styles (FR-18)
 

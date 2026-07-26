@@ -6,7 +6,7 @@
 
 ## Purpose
 
-Resolve open questions for the technical-architecture RFC about how Rotation33
+Resolve open questions about how Rotation33
 syncs a Discogs collection: what the `python3-discogs-client` library actually
 hands us, and how that maps onto our domain model.
 
