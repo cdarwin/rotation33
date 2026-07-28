@@ -4,8 +4,7 @@
 
 **Status:** Request For Comments
 
-**Related documents:** [`mvp.md`](/docs/prd/mvp.md),
-[`technical-architecture.md`](/docs/rfc/technical-architecture.md)
+**Related documents:** [`mvp.md`](/docs/prd/mvp.md)
 
 ## Scope
 
@@ -16,11 +15,11 @@ access and no knowledge of dates, sessions, or regeneration.
 
 The surrounding orchestration (building the candidate pool, applying recency and
 per-session exclusion, persisting a batch, and choosing the FR-10 reason for an
-empty result) is the `recommendations` facade, specified in the architecture doc
-(Section 5.4). It is summarized here only as the engine's calling context.
+empty result) is the `recommendations` facade. It is summarized here only as
+the engine's calling context.
 
 The domain model (Release, Instance, Play, Session, Recommendation, the five
-moods) is settled in the PRD and the architecture doc. Recommendations are
+moods) is settled in the PRD. Recommendations are
 release-level: a pick is a Release, and the specific instance is chosen when a
 play is logged.
 
@@ -94,8 +93,8 @@ dict of `{mood: affinity}`, where affinity is a float in `[0, 1]`:
 
 A mood absent from a style's dict means affinity 0 for that mood via that style.
 It is not stored and is not an error. Validation (floats in `[0, 1]`, and every
-mood name known) happens where the map is written, in `moods.set_affinity_map`
-(architecture Section 5.2); the engine assumes a valid `Affinity`.
+mood name known) happens where the map is written, in `moods.set_affinity_map`;
+the engine assumes a valid `Affinity`.
 
 ### Unmapped styles (FR-18)
 
@@ -109,6 +108,22 @@ style in it with no weight for the mood is 0.
 Surfacing unmapped styles for review (FR-18) is derived on demand by the UI (a
 diff of the styles present in the collection against the affinity map keys), not
 written during sync.
+
+### Releases with no styles at all
+
+A release carrying an empty style list fits every mood, on the same principle:
+absence of classification is not evidence of a poor fit.
+
+This needs stating separately because it does not fall out of the unmapped rule.
+"Any style is unmapped" and "any style has positive affinity" are both vacuously
+false over an empty list, so the natural implementation of the two rules above
+excludes such a release from every mood, permanently, with nothing on screen to
+explain it. That is precisely the outcome FR-18 exists to prevent, arrived at by
+a different route.
+
+These are not hypothetical. Discogs leaves `styles` empty on some releases, and
+the captured collection fixture contains two — both owned pressings of the same
+album, which without this rule could never be recommended.
 
 ### Multi-style resolution
 
@@ -124,16 +139,25 @@ is still a great fit, and is not penalized for the unrelated tag (FR-8).
 1. Keep a candidate if it fits the mood. A release fits if its best-matching
    style has positive affinity for the mood (best-matching is the maximum mapped
    affinity across its styles), or if any of its styles is unmapped (FR-18,
-   eligible everywhere). "Fits at all" is the line; there is no separate tunable
-   threshold.
+   eligible everywhere), or if it carries no styles at all. "Fits at all" is the
+   line; there is no separate tunable threshold.
+
+   The empty-style-list case must be an explicit branch, not an emergent
+   property: both preceding conditions are vacuously false over an empty list,
+   so without it an unclassified release is excluded from every mood forever.
 
 `draw(candidates, count, rng)`, over the fit pool the facade passes in after its
 own recency and session exclusion:
 
 2. If the pool is empty, return `[]`. The facade, not the engine, decides whether
    empty means no-fit or all-recently-played (FR-10).
-3. Rank the pool by staleness descending; never-played (`timedelta.max`) ranks
-   first.
+3. Shuffle the pool, then rank it by staleness descending; never-played
+   (`timedelta.max`) ranks first. The shuffle is not decoration: rank position is
+   the draw weight and Python's sort is stable, so leaving equal-staleness
+   candidates in caller order silently converts that order into a weighting. On a
+   freshly synced collection every release is never-played and therefore tied,
+   and `records.recommendable` returns them sorted by artist, which weighted the
+   entire first-run experience toward the top of the alphabet by up to 69x.
 4. Weight each candidate by its rank position (1 = least stale, up to N = most
    stale): a linear rank weight, not exponential decay or bucketed tiers.
 5. Draw `count` distinct releases by weighted sampling without replacement: call
@@ -164,12 +188,23 @@ unseeded `Random` covers it. `matching` and `draw` are tested independently.
   id, returns `[]` on an empty pool, and returns fewer than `count` without
   raising on a thin pool. For FR-18, a candidate whose only style is unmapped is
   never filtered out.
-- Statistical: build a fixed pool with a known staleness spread (one never-played
-  release and one played yesterday, both fitting the mood), run `draw` a few
-  hundred times with an unseeded RNG, and assert the never-played release is
-  drawn meaningfully more often than the recently-played one (for example more
-  than 2x). This is the test that catches an inverted-weight bug; the
-  deterministic and invariant tests would not.
+- Statistical: build a fixed pool with a known staleness spread, including a
+  never-played release and one played yesterday, both fitting the mood, run
+  `draw` a few hundred times with an unseeded RNG, and assert the never-played
+  release is drawn meaningfully more often than the recently-played one. This is
+  the test that catches an inverted-weight bug; the deterministic and invariant
+  tests would not.
+
+  The pool needs **at least five candidates** for that assertion to have room to
+  hold, and the reason is worth stating because the obvious two-release version
+  of this test cannot pass. Linear rank weighting (step 4 above) assigns weights
+  `1..N` by rank. Over a two-release pool the weights are exactly `2` and `1`, so
+  the stalest release is drawn first with probability `2/3` and the ratio
+  converges on exactly `2.0`. A "more than 2x" threshold is then unreachable at
+  any sample size: the test is not flaky, it is arithmetically impossible, and it
+  fails against a correct implementation. Widen the pool instead. At five
+  candidates the never-played release carries weight `5` against yesterday's `1`,
+  and the margin is comfortable.
 
 ## Explicitly deferred
 

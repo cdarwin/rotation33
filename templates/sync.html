@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Sync · Rotation33{% endblock %}
+
+{% block content %}
+  <section class="panel">
+    <h1>Sync</h1>
+    <p class="lede">Pull the latest from Discogs. Condition and play history are never
+      touched; only album and pressing metadata is refreshed.</p>
+    <form method="post" action="{{ url_for('sync_trigger') }}">
+      <button type="submit" class="button">Sync now</button>
+    </form>
+
+    {# Seeded server-side; while a run is in progress the partial re-polls itself. #}
+    <div id="sync-status">
+      {% include "_sync_status.html" %}
+    </div>
+  </section>
+
+  {% if pending %}
+    <section class="panel">
+      <h2>Confirm retirements</h2>
+      <p class="lede">These copies were in the collection before but were absent from the last
+        sync. Confirm to retire them; anything left unchecked stays pending.</p>
+      <form method="post" action="{{ url_for('sync_retire') }}">
+        <ul class="album-list">
+          {% for album in pending %}
+            {% for inst in album.instances %}
+              <li class="album-row">
+                <label class="retire-choice">
+                  <input type="checkbox" name="instance_id" value="{{ inst.id }}">
+                  <span>
+                    <span class="album-title">{{ album.title }}</span>
+                    <span class="album-artist">{{ album.artist }}{% if inst.description %} · {{ inst.description }}{% endif %}</span>
+                  </span>
+                </label>
+              </li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+        <button type="submit" class="button">Retire selected</button>
+      </form>
+    </section>
+  {% endif %}
+{% endblock %}

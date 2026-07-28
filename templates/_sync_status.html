@@ -1,0 +1,22 @@
+{# While a run is in progress this element re-fetches and replaces itself once a
+   second. When the run is not running it carries no trigger, so polling
+   stops on its own. #}
+<div class="sync-status"
+     {% if run and run.status.value == 'running' %}
+       hx-get="{{ url_for('sync_progress') }}" hx-trigger="load delay:1s" hx-swap="outerHTML"
+     {% endif %}>
+  {% if not run %}
+    <p class="lede">Never synced.</p>
+  {% elif run.status.value == 'running' %}
+    {% set pct = (100 * run.processed / run.total) | round if run.total else 0 %}
+    <p>Syncing… {{ run.processed }} of {{ run.total }}</p>
+    <div class="progress" role="progressbar" aria-valuenow="{{ run.processed }}"
+         aria-valuemin="0" aria-valuemax="{{ run.total }}">
+      <div class="progress-bar" style="width: {{ pct }}%"></div>
+    </div>
+  {% elif run.status.value == 'complete' %}
+    <p class="status-ok">Last sync complete — {{ run.processed }} items.</p>
+  {% else %}
+    <p class="status-bad">Last sync failed{% if run.error %}: {{ run.error }}{% endif %}.</p>
+  {% endif %}
+</div>

@@ -1,0 +1,33 @@
+{% if picks %}
+  <ul class="pick-grid">
+    {% for release in picks %}
+      <li class="pick-card">
+        <div class="cover">
+          {% if release.cover_url %}
+            <img src="{{ release.cover_url }}" alt="Cover of {{ release.title }}" loading="lazy">
+          {% else %}
+            <div class="cover-placeholder" aria-hidden="true">♪</div>
+          {% endif %}
+        </div>
+        <div class="pick-meta">
+          <p class="pick-title">{{ release.title }}</p>
+          <p class="pick-artist">{{ release.artist }}{% if release.year %} · {{ release.year }}{% endif %}</p>
+          {% if release.styles %}
+            <p class="pick-styles">{{ release.styles | join(', ') }}</p>
+          {% endif %}
+          <div class="pick-actions">
+            {# Ephemeral pin: belongs to the header's #regen form via the form
+               attribute, so a checked pick is kept on the next regenerate. #}
+            <label class="keep-toggle">
+              <input type="checkbox" name="keep" value="{{ release.id }}" form="regen"> Keep
+            </label>
+            {% include "_log_control.html" %}
+          </div>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  {# No picks, and why. #}
+  <p class="empty-reason">{{ empty_message or "No picks." }}</p>
+{% endif %}

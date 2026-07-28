@@ -6,7 +6,7 @@
 
 ## Purpose
 
-Resolve open questions for the technical-architecture RFC about how Rotation33
+Resolve open questions about how Rotation33
 syncs a Discogs collection: what the `python3-discogs-client` library actually
 hands us, and how that maps onto our domain model.
 
@@ -125,6 +125,11 @@ Edge (not observed, cheap to handle): a single release can list multiple formats
 (for example an LP-plus-CD box set, `["Vinyl", "CD"]`). The `any(... == "Vinyl")`
 rule keeps those, which is the desired behavior for a vinyl collection.
 
+Phase 1b update: multi-format items do occur in the live collection, but as
+`["Vinyl", "All Media"]` and `["Vinyl", "Box Set"]` — the second name is
+packaging, not a second medium. The LP-plus-CD case remains unobserved and is
+covered by a synthetic fixture item. See Caveats.
+
 ## Sync design consequences
 
 | Concern | Decision |
@@ -136,14 +141,51 @@ rule keeps those, which is the desired behavior for a vinyl collection.
 | Format scope | Keep Instance if any format name is `"Vinyl"`; Release exists if >= 1 vinyl Instance |
 | Cost | Full sync is one paginated collection walk; no N+1 |
 
+## Phase 5 live sync
+
+A full production sync ran against the live collection (74 items) end to end:
+paginate, vinyl filter, group by resolved identity, upsert, download cover art,
+reconcile retirements, commit. It completed clean (74/74, no error) and matched
+the fixture exactly, which both confirms the pipeline against the real API and
+shows the collection is unchanged since the Phase 1b capture.
+
+What the live sync proved that the fixture could not, because the fixture tests
+run against a fake collection rather than the client library:
+
+- The listing shape the `_DiscogsCollection` adapter assumes is the shape the
+  live client returns: `instance_id`, `id`, and a `basic_information` carrying
+  `formats`, `master_id`, `styles`, `title`, `year`, `cover_image`.
+- The vinyl filter drops a CD on live data: the Mutiny master (`m4160569`) came
+  through with two instances, the CD gone, both pressings kept.
+- The `master_id: 0` fallback produces the right releases from real data, the
+  two `r<id>` albums above.
+- Cover-art download works against the live image host (71 of 71 fetched).
+
+The Vinyl-plus-CD edge is the one thing still unconfirmed against live data, for
+the same reason as below: no such item exists in the collection.
+
 ## Caveats
 
 - "No extra fetch for master_id" was inferred from values matching, not from a
   request counter. Strong evidence, not instrumented proof. Add a
   `requests.Session` counter to the spike if the RFC wants it nailed down.
-- The no-master (`master_id: 0`) shape is confirmed from a single real example.
+- ~~The no-master (`master_id: 0`) shape is confirmed from a single real
+  example.~~ **Resolved in Phase 1b.** The fixture capture walked the full
+  collection and found two items with `master_id` present and literally `0`
+  (release ids `37907304` and `37109289`). The key is always present and the
+  sentinel is `0`, never `None`, across every item observed. The
+  `master_id in (0, None)` rule stands; the `None` arm is defensive and has
+  never fired.
 - Multi-format-per-release (LP-plus-CD in one release) was not observed in this
   collection; the filter rule handles it but it is untested against live data.
+  **Still open after Phase 1b.** The live walk found multi-format items, but
+  none of the LP-plus-CD kind: the real combinations are `["Vinyl", "All
+  Media"]` and `["Vinyl", "Box Set"]`, where the extra name is a packaging
+  descriptor rather than a second medium. Those exercise the `any(... ==
+  "Vinyl")` rule but never its discriminating case, since nothing in them is a
+  format the filter should reject. The fixture therefore carries one hand-added
+  LP-plus-CD item, marked `_synthetic`, and this stays a real caveat: the shape
+  is still unwitnessed in live data.
 
 ## Reproducing
 

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Settings · Rotation33{% endblock %}
+
+{% block content %}
+  <section class="panel">
+    <h1>Settings</h1>
+  </section>
+
+  <section class="panel">
+    <h2>Recency window</h2>
+    <p class="lede">A record played within this many days is held back from suggestions.
+      Zero allows immediate repeats across sessions.</p>
+    <form method="post" action="{{ url_for('settings_window') }}" class="inline-form">
+      <label>Days
+        <input type="number" name="days" min="0" step="1" value="{{ window_days }}">
+      </label>
+      <button type="submit" class="button">Save</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>Mood descriptions</h2>
+    <p class="lede">The words shown when picking a mood.</p>
+    {% for mood in moods %}
+      <form method="post" action="{{ url_for('settings_description', name=mood.name) }}" class="mood-desc-form">
+        <label class="mood-desc-label">{{ mood.name }}
+          <input type="text" name="description" value="{{ mood.description }}">
+        </label>
+        <button type="submit" class="button button-quiet">Save</button>
+      </form>
+    {% endfor %}
+  </section>
+
+  <section class="panel">
+    <h2>Affinity map</h2>
+    <p class="lede">Which styles suit which moods, as JSON. Invalid JSON or an unknown mood
+      is rejected rather than saved.</p>
+    <form method="post" action="{{ url_for('settings_affinity') }}" class="affinity-form">
+      <textarea name="affinity" rows="16" spellcheck="false" aria-label="Affinity map JSON">{{ affinity_json }}</textarea>
+      <button type="submit" class="button">Save affinity map</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>Styles to review</h2>
+    <p class="lede">Styles in the collection that no mood maps. An unmapped style is
+      eligible for every mood, so these are candidates worth classifying.</p>
+    {% if unmapped %}
+      <ul class="style-review">
+        {% for style in unmapped %}<li>{{ style }}</li>{% endfor %}
+      </ul>
+    {% else %}
+      <p class="lede">Every style in the collection is mapped.</p>
+    {% endif %}
+  </section>
+{% endblock %}

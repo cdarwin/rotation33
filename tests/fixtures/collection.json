@@ -1,0 +1,3040 @@
+{
+  "items": [
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "Wu-Tang",
+            "id": 11213,
+            "join": "X",
+            "name": "Wu-Tang Clan",
+            "resource_url": "https://api.discogs.com/artists/11213",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "Mathematics",
+            "id": 170002,
+            "join": "",
+            "name": "Allah Mathematics",
+            "resource_url": "https://api.discogs.com/artists/170002",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/-bUZS7qeB0PmzcACxF_vyri6sr_UegPG0Jm89L5bQF0/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0MjU5/ODMzLTE3NTMxMTY5/MjUtNDg1MC5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          }
+        ],
+        "id": 34259833,
+        "master_id": 3810765,
+        "styles": [
+          "Boom Bap",
+          "Hardcore Hip-Hop"
+        ],
+        "title": "Black Samson, The Bastard Swordsman",
+        "year": 2025
+      },
+      "id": 34259833,
+      "instance_id": 2124779889
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 251517,
+            "join": "",
+            "name": "Supertramp",
+            "resource_url": "https://api.discogs.com/artists/251517",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/xWx0iVcEvYxYGQssERYteNt4U9z70ewwsR6PAgSwLMM/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE0MTE5/NjAtMTMyMTM4NzU3/NS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Monarch Press"
+          }
+        ],
+        "id": 1411960,
+        "master_id": 25374,
+        "styles": [
+          "Pop Rock"
+        ],
+        "title": "Crime Of The Century",
+        "year": 1974
+      },
+      "id": 1411960,
+      "instance_id": 2124782875
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 251517,
+            "join": "",
+            "name": "Supertramp",
+            "resource_url": "https://api.discogs.com/artists/251517",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/dAnSPILkX9pc1_zH0iWdoPIfT7fo16z21f-Q7qRMrGw/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYxNzQ4/Ni0xNDU5MDM1Mjc2/LTg5MTUuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Terre Haute Pressing"
+          }
+        ],
+        "id": 617486,
+        "master_id": 25362,
+        "styles": [
+          "Art Rock",
+          "Pop Rock"
+        ],
+        "title": "Breakfast In America",
+        "year": 1979
+      },
+      "id": 617486,
+      "instance_id": 2157030452
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 10933,
+            "join": "",
+            "name": "Bryan Adams",
+            "resource_url": "https://api.discogs.com/artists/10933",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/qmSd9zndUf-3Fy74o9DXrDPNAionDuFhB-IwOPwYNbM/rs:fit/g:sm/q:90/h:600/w:599/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc3OTc1/NS0xMzk1NTkwNjYx/LTU5NTMuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Indianapolis Pressing, Translucent Brown"
+          }
+        ],
+        "id": 779755,
+        "master_id": 13280,
+        "styles": [
+          "Pop Rock"
+        ],
+        "title": "Reckless",
+        "year": 1984
+      },
+      "id": 779755,
+      "instance_id": 2157565781
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 1289,
+            "join": "",
+            "name": "Daft Punk",
+            "resource_url": "https://api.discogs.com/artists/1289",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/9omVF7Ur_lP25cJS_AUeKEXhSWncOr_VllpR1UdVHV4/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI5Mjc3/MDEwLTE3MzMwODAz/ODEtMzE5Ni5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "2",
+            "text": "Gatefold"
+          }
+        ],
+        "id": 29277010,
+        "master_id": 26647,
+        "styles": [
+          "Disco",
+          "House",
+          "Electro",
+          "French House"
+        ],
+        "title": "Discovery",
+        "year": 2023
+      },
+      "id": 29277010,
+      "instance_id": 2143077665
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 193816,
+            "join": "",
+            "name": "Patti Smith",
+            "resource_url": "https://api.discogs.com/artists/193816",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/DqgJeBsII-sRZDq-TVBoqRwmRcEs1kSI6HGZHgZ2OL0/rs:fit/g:sm/q:90/h:600/w:565/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM1MzI4/NDkwLTE3NjAxMDM3/MzEtODE2My5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue",
+              "Remastered",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          },
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          },
+          {
+            "descriptions": [
+              "Album"
+            ],
+            "name": "All Media",
+            "qty": "1",
+            "text": "50th Anniversary, Gatefold"
+          }
+        ],
+        "id": 35328490,
+        "master_id": 40109,
+        "styles": [
+          "Art Rock",
+          "Punk"
+        ],
+        "title": "Horses",
+        "year": 2025
+      },
+      "id": 35328490,
+      "instance_id": 2153668792
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 357982,
+            "join": "",
+            "name": "George Jones (2)",
+            "resource_url": "https://api.discogs.com/artists/357982",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/Z8ldKMSLXXcyTkxPhUrlFaXhhk_8KEZwNglmj9P6rMo/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM3MTA1/NTY2LTE3NzY1MzI5/MzgtNDg1NS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Record Store Day",
+              "Limited Edition",
+              "Reissue"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Blue Possum"
+          }
+        ],
+        "id": 37105566,
+        "master_id": 967545,
+        "styles": [
+          "Country"
+        ],
+        "title": "Cold Hard Truth",
+        "year": 2026
+      },
+      "id": 37105566,
+      "instance_id": 2164886547
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 50263,
+            "join": "",
+            "name": "Yes",
+            "resource_url": "https://api.discogs.com/artists/50263",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/DPBoLlYfhLYyorEcresF3shqYFa2ZVToudbKVNYr2bU/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE2MjQ1/MDEtMTUyODEzNTA0/MC0xNjAwLmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Compilation",
+              "Reissue",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Presswell"
+          }
+        ],
+        "id": 1624501,
+        "master_id": 35153,
+        "styles": [
+          "Psychedelic Rock",
+          "Prog Rock"
+        ],
+        "title": "Yesterdays",
+        "year": 1977
+      },
+      "id": 1624501,
+      "instance_id": 2137424412
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 124506,
+            "join": "",
+            "name": "Genesis",
+            "resource_url": "https://api.discogs.com/artists/124506",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/mmI7i57GQTN3nNj5iW52BGN3feoA6K8oacZWyAiQWpo/rs:fit/g:sm/q:90/h:500/w:500/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMyMzA2/NDctMTMyMTQ4MDg2/NS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "D"
+          }
+        ],
+        "id": 3230647,
+        "master_id": 28767,
+        "styles": [
+          "Pop Rock",
+          "Prog Rock"
+        ],
+        "title": "Abacab",
+        "year": 1981
+      },
+      "id": 3230647,
+      "instance_id": 2154217237
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 50263,
+            "join": "",
+            "name": "Yes",
+            "resource_url": "https://api.discogs.com/artists/50263",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/U5LXPNdd9eNF8sBCE4w-hrCxTLyM7gCnIE9Ejxgt1u8/rs:fit/g:sm/q:90/h:500/w:500/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwMDk0/ODgtMTIyMDgzMzcz/MS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Compilation"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "SP-Specialty Press"
+          }
+        ],
+        "id": 1009488,
+        "master_id": 35677,
+        "styles": [
+          "Prog Rock",
+          "Symphonic Rock"
+        ],
+        "title": "Classic Yes",
+        "year": 1981
+      },
+      "id": 1009488,
+      "instance_id": 2132233594
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 398436,
+            "join": "",
+            "name": "England Dan & John Ford Coley",
+            "resource_url": "https://api.discogs.com/artists/398436",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/pVhG9kKUFndiuwJokO8XciYbt5AhN0ZIhp2JNgM9o-c/rs:fit/g:sm/q:90/h:597/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYwOTAz/OTctMTQxMDkxNTEx/MS0zMzk4LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "PRC Press"
+          }
+        ],
+        "id": 6090397,
+        "master_id": 468817,
+        "styles": [
+          "Country Rock",
+          "Soft Rock"
+        ],
+        "title": "Dowdy Ferry Road",
+        "year": 1977
+      },
+      "id": 6090397,
+      "instance_id": 2160419886
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "Art Blakey And The Jazz Messengers",
+            "id": 262128,
+            "join": "",
+            "name": "Art Blakey & The Jazz Messengers",
+            "resource_url": "https://api.discogs.com/artists/262128",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/MkycIb8asg-Qpx1M7rImg_GV11wgkSbDlZLFAlaIw-U/rs:fit/g:sm/q:90/h:587/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE4MTUw/OTA3LTE3NTkzNzY2/MTItMjc4My5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "180g"
+          }
+        ],
+        "id": 18150907,
+        "master_id": 62462,
+        "styles": [
+          "Hard Bop"
+        ],
+        "title": "Moanin'",
+        "year": 2021
+      },
+      "id": 18150907,
+      "instance_id": 2154049384
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 3351365,
+            "join": "",
+            "name": "Run The Jewels",
+            "resource_url": "https://api.discogs.com/artists/3351365",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/kFcs_nHRQPYgVZungIoNsnEOYQJAEaJZJVZ4HgGB7jI/rs:fit/g:sm/q:90/h:596/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1OTI0/ODY5LTE2MDAzMDQ1/NDEtMTAwOC5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Limited Edition"
+            ],
+            "name": "Vinyl",
+            "qty": "2",
+            "text": "Clear w/ Magenta Swirl"
+          }
+        ],
+        "id": 15924869,
+        "master_id": 1749989,
+        "styles": [
+          "Hardcore Hip-Hop"
+        ],
+        "title": "Run The Jewels 4",
+        "year": 2020
+      },
+      "id": 15924869,
+      "instance_id": 2124784110
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 38039,
+            "join": "Presents",
+            "name": "Nathaniel Merriweather",
+            "resource_url": "https://api.discogs.com/artists/38039",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "",
+            "id": 48891,
+            "join": "Avec",
+            "name": "Lovage",
+            "resource_url": "https://api.discogs.com/artists/48891",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "Michael Patton",
+            "id": 108249,
+            "join": "&",
+            "name": "Mike Patton",
+            "resource_url": "https://api.discogs.com/artists/108249",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "",
+            "id": 59463,
+            "join": "",
+            "name": "Jennifer Charles",
+            "resource_url": "https://api.discogs.com/artists/59463",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/MRcZzYpS81l5ROWEnWqyAtFIsUp64ZHZp0Ns6rjygVE/rs:fit/g:sm/q:90/h:597/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIzODk0/OTY5LTE2OTQzMDQz/MzEtOTM4OC5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue"
+            ],
+            "name": "Vinyl",
+            "qty": "2"
+          }
+        ],
+        "id": 23894969,
+        "master_id": 47532,
+        "styles": [
+          "Chanson",
+          "Downtempo",
+          "Hip Hop"
+        ],
+        "title": "Music To Make Love To Your Old Lady By",
+        "year": 2022
+      },
+      "id": 23894969,
+      "instance_id": 2153669734
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "The Steve Miller Band",
+            "id": 29815,
+            "join": "",
+            "name": "Steve Miller Band",
+            "resource_url": "https://api.discogs.com/artists/29815",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/yaU4lxrVftNKwMwWr33V149sbtEDDfEA8l5ZF3dESkk/rs:fit/g:sm/q:90/h:600/w:598/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTg5OTYw/My0xNDA3Mjc1MjQ4/LTIzMTMuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "NAMI Pressing"
+          }
+        ],
+        "id": 899603,
+        "master_id": 82408,
+        "styles": [
+          "Blues Rock",
+          "Classic Rock",
+          "Psychedelic Rock"
+        ],
+        "title": "Book Of Dreams",
+        "year": 1977
+      },
+      "id": 899603,
+      "instance_id": 2154213321
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "The Steve Miller Band",
+            "id": 29815,
+            "join": "",
+            "name": "Steve Miller Band",
+            "resource_url": "https://api.discogs.com/artists/29815",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/QWJFKLFmkGDADZ7-xhE7j-CD8dh7BOh__3-1wruh-Qw/rs:fit/g:sm/q:90/h:500/w:500/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzNDU1/Ny0xMTg5Njc3NDc3/LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          }
+        ],
+        "id": 334557,
+        "master_id": 82440,
+        "styles": [
+          "Pop Rock",
+          "Psychedelic Rock"
+        ],
+        "title": "Circle Of Love",
+        "year": 1981
+      },
+      "id": 334557,
+      "instance_id": 2154212824
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 8887,
+            "join": "",
+            "name": "Parliament",
+            "resource_url": "https://api.discogs.com/artists/8887",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/PwlF3-53qK7egfm0OBe0QmaAkGbHk_V9qMYLNcktcio/rs:fit/g:sm/q:90/h:599/w:592/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI3MDgw/NzE4LTE2ODQxMDc1/NDgtMTc3Ni5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          }
+        ],
+        "id": 27080718,
+        "master_id": 15841,
+        "styles": [
+          "P.Funk",
+          "Funk"
+        ],
+        "title": "Mothership Connection",
+        "year": 2023
+      },
+      "id": 27080718,
+      "instance_id": 2162021026
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 46373,
+            "join": "",
+            "name": "Billy Idol",
+            "resource_url": "https://api.discogs.com/artists/46373",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/5or4JiptCsPezquWwssnJJRVH3qlP3VT9r6IYrt-gek/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0NDU3/Mi0xMzgzOTU0Njky/LTE0NTMuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Compilation",
+              "Reissue"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          }
+        ],
+        "id": 344572,
+        "master_id": 369988,
+        "styles": [
+          "Pop Rock",
+          "Synth-pop"
+        ],
+        "title": "Vital Idol",
+        "year": 1987
+      },
+      "id": 344572,
+      "instance_id": 2160453612
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 30724,
+            "join": "",
+            "name": "Santana",
+            "resource_url": "https://api.discogs.com/artists/30724",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/_m5kIshyIsuT9OuQn_soL7pgKjxpHJSLrSiRtIpLyDI/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTczNzIy/NC0xMzc0MDc1NTU3/LTI3MjUuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          }
+        ],
+        "id": 737224,
+        "master_id": 37570,
+        "styles": [
+          "Afro-Cuban",
+          "Psychedelic Rock"
+        ],
+        "title": "Santana",
+        "year": 1969
+      },
+      "id": 737224,
+      "instance_id": 2160441430
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 114483,
+            "join": "",
+            "name": "Chicago (2)",
+            "resource_url": "https://api.discogs.com/artists/114483",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/Zx53HU289IThAdsVs5evAZDzoK3xY7HKyv6EtdK_7iM/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk1NjYz/ODctMTU0Njk2NjAy/OC0yNTA2LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Compilation",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Terre Haute Pressing"
+          }
+        ],
+        "id": 9566387,
+        "master_id": 214922,
+        "styles": [
+          "Soft Rock",
+          "Pop Rock"
+        ],
+        "title": "Greatest Hits, Volume II",
+        "year": 1981
+      },
+      "id": 9566387,
+      "instance_id": 2154211226
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 263206,
+            "join": "\u2022",
+            "name": "Waylon Jennings",
+            "resource_url": "https://api.discogs.com/artists/263206",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "",
+            "id": 249449,
+            "join": "\u2022",
+            "name": "Willie Nelson",
+            "resource_url": "https://api.discogs.com/artists/249449",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "",
+            "id": 135946,
+            "join": "\u2022",
+            "name": "Johnny Cash",
+            "resource_url": "https://api.discogs.com/artists/135946",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "",
+            "id": 303575,
+            "join": "",
+            "name": "Kris Kristofferson",
+            "resource_url": "https://api.discogs.com/artists/303575",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/pifou2B-72OxZhHR3GCYjWm913CcCbnuZNFlJFL8AKY/rs:fit/g:sm/q:90/h:600/w:592/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE2NDM1/NzItMTQxNzM3OTE4/NC01NDMyLmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Carrollton Pressing"
+          }
+        ],
+        "id": 1643572,
+        "master_id": 36369,
+        "styles": [
+          "Country",
+          "Folk"
+        ],
+        "title": "Highwayman",
+        "year": 1985
+      },
+      "id": 1643572,
+      "instance_id": 2124782528
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 114483,
+            "join": "",
+            "name": "Chicago (2)",
+            "resource_url": "https://api.discogs.com/artists/114483",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/HCk_eu-yx7jTCdr16FQZ9GeK1I_fZ8bYNsUFwUnYGHk/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk0MTUz/NC0xMzAxMDk5MTMw/LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Santa Maria Pressing"
+          }
+        ],
+        "id": 941534,
+        "master_id": 25621,
+        "styles": [
+          "Pop Rock",
+          "Classic Rock",
+          "Jazz-Rock"
+        ],
+        "title": "Chicago V",
+        "year": 1972
+      },
+      "id": 941534,
+      "instance_id": 2157571903
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 232157,
+            "join": "",
+            "name": "Simon & Garfunkel",
+            "resource_url": "https://api.discogs.com/artists/232157",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/3UAzzrF1C88jrmcyxNk7guX_gX4lJBiP36A7rabfq_0/rs:fit/g:sm/q:90/h:450/w:450/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQzMTcy/MTAtMTM2MTU3MTgy/OS01MDI4LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Compilation"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Terre Haute Pressing"
+          }
+        ],
+        "id": 4317210,
+        "master_id": 27798,
+        "styles": [
+          "Folk Rock",
+          "Classic Rock"
+        ],
+        "title": "Simon And Garfunkel's Greatest Hits",
+        "year": 1972
+      },
+      "id": 4317210,
+      "instance_id": 2160411990
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 114483,
+            "join": "",
+            "name": "Chicago (2)",
+            "resource_url": "https://api.discogs.com/artists/114483",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/XlZRNSh_nyfgepaKWfHFFm-Mr4NT-W87F8w3_8oIbqM/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk0MTUz/Mi0xNDA0MzM1MTEz/LTk0MzYuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Pitman Pressing"
+          }
+        ],
+        "id": 941532,
+        "master_id": 25631,
+        "styles": [
+          "Soft Rock",
+          "Classic Rock"
+        ],
+        "title": "Chicago VIII",
+        "year": 1975
+      },
+      "id": 941532,
+      "instance_id": 2154212202
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 114483,
+            "join": "",
+            "name": "Chicago (2)",
+            "resource_url": "https://api.discogs.com/artists/114483",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/mw2pGhqCFqVGxubH-8O6w7FKKMjkrtRlG8fbNP0P0TY/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTcwOTQ4/NC0xMzY1Mzc0NjU3/LTQzMzAuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Compilation",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Pitman Pressing, Custom Labels"
+          }
+        ],
+        "id": 709484,
+        "master_id": 83144,
+        "styles": [
+          "Soft Rock",
+          "Pop Rock"
+        ],
+        "title": "Chicago IX Chicago's Greatest Hits",
+        "year": 1975
+      },
+      "id": 709484,
+      "instance_id": 2154210962
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 219986,
+            "join": "",
+            "name": "Bruce Springsteen",
+            "resource_url": "https://api.discogs.com/artists/219986",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/1QOaYaThqm_tOb0kSc2x_rIKb0w1Wk21pXpFg8EmsRI/rs:fit/g:sm/q:90/h:590/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE5NDg0/ODcyLTE2MjYyMjk2/NTEtNjE3Mi5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Carrollton Pressing, Pitman P', RL Etching"
+          }
+        ],
+        "id": 19484872,
+        "master_id": 26701,
+        "styles": [
+          "Pop Rock"
+        ],
+        "title": "Born In The U.S.A.",
+        "year": 1984
+      },
+      "id": 19484872,
+      "instance_id": 2157555734
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 23755,
+            "join": "",
+            "name": "Miles Davis",
+            "resource_url": "https://api.discogs.com/artists/23755",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/HGXplYmK1aI1PknI07smtgE6ls1VF1_aqcn4Dls7C2Q/rs:fit/g:sm/q:90/h:598/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1MDAx/OTQ2LTE1ODU5MzU1/ODAtNzE5NS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "2",
+            "text": "Gatefold"
+          }
+        ],
+        "id": 15001946,
+        "master_id": 8260,
+        "styles": [
+          "Fusion"
+        ],
+        "title": "Bitches Brew",
+        "year": 2020
+      },
+      "id": 15001946,
+      "instance_id": 2162165916
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 37224,
+            "join": "",
+            "name": "Sister Sledge",
+            "resource_url": "https://api.discogs.com/artists/37224",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/e8WJVSbtMGd9WMPlmmjbf8byWhcaM7_rhhjGTIs-bMY/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzNzYz/Ni0xNDQ5NDM4NTE2/LTQ4NjEuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "SP"
+          }
+        ],
+        "id": 337636,
+        "master_id": 108534,
+        "styles": [
+          "Disco"
+        ],
+        "title": "We Are Family",
+        "year": 1979
+      },
+      "id": 337636,
+      "instance_id": 2146716324
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 81013,
+            "join": "",
+            "name": "Queen",
+            "resource_url": "https://api.discogs.com/artists/81013",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/oANW0HT_aU7lkXSUrDtRgsLtWouY85aCMTAhNN-JleU/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ0Njgx/NC0xMjkzMDE5Nzg4/LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "CSM/SP"
+          }
+        ],
+        "id": 446814,
+        "master_id": 13248,
+        "styles": [
+          "Classic Rock",
+          "Pop Rock"
+        ],
+        "title": "The Game",
+        "year": 1980
+      },
+      "id": 446814,
+      "instance_id": 2157518432
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 81013,
+            "join": "",
+            "name": "Queen",
+            "resource_url": "https://api.discogs.com/artists/81013",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/Mfopx3d4WmMKXKg2AtXVykTQ9SKl8nSB3xDaZw-QCqw/rs:fit/g:sm/q:90/h:599/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTY0NjEx/NjgtMTQzNDY2NTc3/OS05NzU1LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "SP - Specialty Pressing, Embossed Gatefold"
+          }
+        ],
+        "id": 6461168,
+        "master_id": 5863,
+        "styles": [
+          "Hard Rock",
+          "Prog Rock"
+        ],
+        "title": "A Night At The Opera",
+        "year": 1975
+      },
+      "id": 6461168,
+      "instance_id": 2160215015
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 266026,
+            "join": "",
+            "name": "The Edgar Winter Group",
+            "resource_url": "https://api.discogs.com/artists/266026",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/TeFGz_iqEn20GmvnQ92zxQT8ilDUBW67D5tQkYEfJ6Y/rs:fit/g:sm/q:90/h:537/w:538/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ4OTkx/MzItMTM3ODg2MTQw/NC01NTE4LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Pinckneyville pressing"
+          }
+        ],
+        "id": 4899132,
+        "master_id": 30887,
+        "styles": [
+          "Blues Rock",
+          "Pop Rock"
+        ],
+        "title": "They Only Come Out At Night",
+        "year": 1972
+      },
+      "id": 4899132,
+      "instance_id": 2154216169
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 253281,
+            "join": "",
+            "name": "NOFX",
+            "resource_url": "https://api.discogs.com/artists/253281",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/Egkv91CPJG6OahU92yk8yjouvWMF1jjbbCMQHxn-hho/rs:fit/g:sm/q:90/h:600/w:588/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM3NDUz/MDQ0LTE3Nzk4NDAw/NTAtNDYwMC5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Reissue",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          }
+        ],
+        "id": 37453044,
+        "master_id": 24697,
+        "styles": [
+          "Punk"
+        ],
+        "title": "The War On Errorism",
+        "year": 2026
+      },
+      "id": 37453044,
+      "instance_id": 2149818866
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 5780570,
+            "join": "",
+            "name": "Tyler Childers",
+            "resource_url": "https://api.discogs.com/artists/5780570",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/nGoBhqtrX6nP9hL_oH7teJj31Qn7oFAu3Alv7ByMs1s/rs:fit/g:sm/q:90/h:600/w:599/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0NjQw/NzUyLTE3NTM0NzM2/NTAtNjE3My5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "2"
+          }
+        ],
+        "id": 34640752,
+        "master_id": 3919078,
+        "styles": [
+          "Country"
+        ],
+        "title": "Snipe Hunter",
+        "year": 2025
+      },
+      "id": 34640752,
+      "instance_id": 2146256576
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 12839129,
+            "join": "&",
+            "name": "Johnny Blue Skies",
+            "resource_url": "https://api.discogs.com/artists/12839129",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "",
+            "id": 17609529,
+            "join": "",
+            "name": "The Dark Clouds (2)",
+            "resource_url": "https://api.discogs.com/artists/17609529",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/7-qeZcr8VHYrpz0VdKX0Vp_D0YEAHromlVNJ_tBn_-w/rs:fit/g:sm/q:90/h:547/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM2NzYy/OTc2LTE3NzM0MjU2/OTItNDQzMi5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "Album"
+            ],
+            "name": "CD",
+            "qty": "1"
+          }
+        ],
+        "id": 36762976,
+        "master_id": 4160569,
+        "styles": [
+          "Disco",
+          "Funk",
+          "Country",
+          "Blues Rock"
+        ],
+        "title": "Mutiny After Midnight",
+        "year": 2026
+      },
+      "id": 36762976,
+      "instance_id": 2124926875
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 12839129,
+            "join": "&",
+            "name": "Johnny Blue Skies",
+            "resource_url": "https://api.discogs.com/artists/12839129",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "",
+            "id": 17609529,
+            "join": "",
+            "name": "The Dark Clouds (2)",
+            "resource_url": "https://api.discogs.com/artists/17609529",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/T58uP3ZFvYDwXQG0Ks8NgOFefloQqG5x7-zDWBuFHVw/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM2NzU0/NjE4LTE3NzgxNTU2/NzItNDM3Ny5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Red Translucent "
+          }
+        ],
+        "id": 36754618,
+        "master_id": 4160569,
+        "styles": [],
+        "title": "Mutiny After Midnight",
+        "year": 2026
+      },
+      "id": 36754618,
+      "instance_id": 2124727382
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 12839129,
+            "join": "&",
+            "name": "Johnny Blue Skies",
+            "resource_url": "https://api.discogs.com/artists/12839129",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "",
+            "id": 17609529,
+            "join": "",
+            "name": "The Dark Clouds (2)",
+            "resource_url": "https://api.discogs.com/artists/17609529",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/DrYfXuEWrlCWsj3vquIFrkCn7wK4JA7_072-Q4MXpZ8/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM2Nzkw/OTkzLTE3NzM3ODEw/OTAtNjU3NS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Orange Translucent [Competition Orange]"
+          }
+        ],
+        "id": 36790993,
+        "master_id": 4160569,
+        "styles": [],
+        "title": "Mutiny After Midnight",
+        "year": 2026
+      },
+      "id": 36790993,
+      "instance_id": 2124926800
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 251689,
+            "join": "",
+            "name": "The Dave Brubeck Quartet",
+            "resource_url": "https://api.discogs.com/artists/251689",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/q9cKrtSlvGm61e0ekZ4anolEPScLsLyN2HaMbT18Mtk/rs:fit/g:sm/q:90/h:600/w:599/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIzODM5/MjUtMTU2NjIyNzQz/OC03MDc1LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Limited Edition",
+              "Reissue",
+              "Remastered",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "180 Gram, DMM"
+          }
+        ],
+        "id": 2383925,
+        "master_id": 34081,
+        "styles": [
+          "Bop",
+          "Hard Bop"
+        ],
+        "title": "Time Out",
+        "year": 2010
+      },
+      "id": 2383925,
+      "instance_id": 2154049385
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "Beethoven",
+            "id": 95544,
+            "join": "-",
+            "name": "Ludwig van Beethoven",
+            "resource_url": "https://api.discogs.com/artists/95544",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "",
+            "id": 397620,
+            "join": "/",
+            "name": "Georg Solti",
+            "resource_url": "https://api.discogs.com/artists/397620",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "",
+            "id": 837562,
+            "join": "And",
+            "name": "Chicago Symphony Orchestra",
+            "resource_url": "https://api.discogs.com/artists/837562",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "Chorus",
+            "id": 3016490,
+            "join": "/",
+            "name": "Chicago Symphony Chorus",
+            "resource_url": "https://api.discogs.com/artists/3016490",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "Lorengar",
+            "id": 838932,
+            "join": "/",
+            "name": "Pilar Lorengar",
+            "resource_url": "https://api.discogs.com/artists/838932",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "Minton",
+            "id": 833842,
+            "join": "/",
+            "name": "Yvonne Minton",
+            "resource_url": "https://api.discogs.com/artists/833842",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "Burrows",
+            "id": 844249,
+            "join": "/",
+            "name": "Stuart Burrows",
+            "resource_url": "https://api.discogs.com/artists/844249",
+            "role": "",
+            "tracks": ""
+          },
+          {
+            "anv": "Talvela",
+            "id": 861487,
+            "join": "",
+            "name": "Martti Talvela",
+            "resource_url": "https://api.discogs.com/artists/861487",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/KqRWNFGSG7MvKEQYyzfosJOUhLaKFckmKL3WMVmZvOw/rs:fit/g:sm/q:90/h:599/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMTMx/NDEtMTI1OTI4Mjg3/My5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "2",
+            "text": "Gatefold"
+          }
+        ],
+        "id": 1113141,
+        "master_id": 254857,
+        "styles": [
+          "Classical"
+        ],
+        "title": "Symphony No. 9 In D Minor, Op. 125 'Choral'",
+        "year": 1972
+      },
+      "id": 1113141,
+      "instance_id": 2139579154
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 57103,
+            "join": "",
+            "name": "Elton John",
+            "resource_url": "https://api.discogs.com/artists/57103",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/bu2dKo-fWfdv8H0DlKJxY0mqMitIeqi5zh66ae01bSM/rs:fit/g:sm/q:90/h:571/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTg5NTI3/OTktMTQ3MjEzNzE0/NC00MTk3LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Pinckneyville Pressing, Gatefold"
+          }
+        ],
+        "id": 8952799,
+        "master_id": 30583,
+        "styles": [
+          "Pop Rock",
+          "Classic Rock"
+        ],
+        "title": "Don't Shoot Me I'm Only The Piano Player",
+        "year": 1973
+      },
+      "id": 8952799,
+      "instance_id": 2160417232
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 196766,
+            "join": "",
+            "name": "The Who",
+            "resource_url": "https://api.discogs.com/artists/196766",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/9y6-tD2YE0V4OuLgv-aRhDuEMMX22JR4G1MkYmUA55Y/rs:fit/g:sm/q:90/h:596/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwODc4/MjQtMTIxNjY5NTc5/Ny5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Pinckneyville Pressing"
+          }
+        ],
+        "id": 1087824,
+        "master_id": 68464,
+        "styles": [
+          "Hard Rock",
+          "Pop Rock"
+        ],
+        "title": "Who Are You",
+        "year": 1978
+      },
+      "id": 1087824,
+      "instance_id": 2124783301
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 57103,
+            "join": "",
+            "name": "Elton John",
+            "resource_url": "https://api.discogs.com/artists/57103",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/e62SmLu9lZeY5yjaKnRucqCJnFHCl9pobT44wXTf78Q/rs:fit/g:sm/q:90/h:599/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI0Njk2/MDktMTQ0MjA5NTk1/NC01MDUwLmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "2",
+            "text": "Pinckneyville Press, TriFold"
+          }
+        ],
+        "id": 2469609,
+        "master_id": 30577,
+        "styles": [
+          "Pop Rock"
+        ],
+        "title": "Goodbye Yellow Brick Road",
+        "year": 1973
+      },
+      "id": 2469609,
+      "instance_id": 2160221105
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 160906,
+            "join": "",
+            "name": "Steely Dan",
+            "resource_url": "https://api.discogs.com/artists/160906",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/hlMKmIt4jP89AVpz4Epu7oPRqiYJPF0H1TDreVOQcgI/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTU4OTQ3/MDYtMTY2MzgwNzA1/Mi0yMjI0LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Pinckneyville"
+          }
+        ],
+        "id": 5894706,
+        "master_id": 16954,
+        "styles": [
+          "Classic Rock"
+        ],
+        "title": "Katy Lied",
+        "year": 1980
+      },
+      "id": 5894706,
+      "instance_id": 2159895458
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 61800,
+            "join": "",
+            "name": "Rush",
+            "resource_url": "https://api.discogs.com/artists/61800",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/nyns8wOfeY8LRd4myx_0M1Mx4vhparhLT2Kz7j78GaY/rs:fit/g:sm/q:90/h:600/w:588/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTY3ODUy/MDItMTQyNjU4MTY1/NC03MTA5LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Hologram Edition, 180 gram"
+          }
+        ],
+        "id": 6785202,
+        "master_id": 7315,
+        "styles": [
+          "Hard Rock",
+          "Prog Rock"
+        ],
+        "title": "2112",
+        "year": 2015
+      },
+      "id": 6785202,
+      "instance_id": 2132232827
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 61800,
+            "join": "",
+            "name": "Rush",
+            "resource_url": "https://api.discogs.com/artists/61800",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/HAFEz9rxGMxhfDT0o_oGUIIIWdBj84kaOkW-80u3Eh4/rs:fit/g:sm/q:90/h:592/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIwNjM1/ODcwLTE2NTA1NDIw/NjctNDI1OS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "180 Gram"
+          }
+        ],
+        "id": 20635870,
+        "master_id": 7532,
+        "styles": [
+          "Prog Rock"
+        ],
+        "title": "Moving Pictures",
+        "year": 2015
+      },
+      "id": 20635870,
+      "instance_id": 2160390238
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 4630088,
+            "join": "",
+            "name": "Molly Tuttle (2)",
+            "resource_url": "https://api.discogs.com/artists/4630088",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/Z7yU9mDWw28q4Id3byeAVcn93p8eGzNPEDbaUbq_5No/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0ODQ3/NjEyLTE3NTU0ODUz/NjQtMTgzOS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Limited Edition, Marmalade"
+          }
+        ],
+        "id": 34847612,
+        "master_id": 3937754,
+        "styles": [
+          "Bluegrass",
+          "Country"
+        ],
+        "title": "So Long Little Miss Sunshine",
+        "year": 2025
+      },
+      "id": 34847612,
+      "instance_id": 2153666790
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 18009444,
+            "join": "",
+            "name": "Matt Burke (11)",
+            "resource_url": "https://api.discogs.com/artists/18009444",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/2yQRHuHH2dNvVC2p29JnHrtCcypkj_cqydqTm96MDWA/rs:fit/g:sm/q:90/h:600/w:592/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM3OTA3/MzA0LTE3ODQzMTE0/NjEtOTIwMy5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "12\"",
+              "33 \u2153 RPM",
+              "Album",
+              "Limited Edition",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Translucent Blue"
+          }
+        ],
+        "id": 37907304,
+        "master_id": 0,
+        "styles": [
+          "Country",
+          "Folk"
+        ],
+        "title": "Hookups & Heartaches",
+        "year": 2024
+      },
+      "id": 37907304,
+      "instance_id": 2164824220
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 261370,
+            "join": "",
+            "name": "Quiet Riot",
+            "resource_url": "https://api.discogs.com/artists/261370",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/PBPBjn-VHfABYNlAv_Gltbnkhnz5KyoFlfQaqxIlLMg/rs:fit/g:sm/q:90/h:576/w:577/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEyMjkx/NzAzLTE1MzIyODU1/NzItNDkyNy5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Pitman Pressing"
+          }
+        ],
+        "id": 12291703,
+        "master_id": 67338,
+        "styles": [
+          "Hard Rock",
+          "Arena Rock",
+          "Heavy Metal"
+        ],
+        "title": "Metal Health",
+        "year": 1983
+      },
+      "id": 12291703,
+      "instance_id": 2160455317
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 45467,
+            "join": "",
+            "name": "Pink Floyd",
+            "resource_url": "https://api.discogs.com/artists/45467",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/InndHB6VSMUxE7xl3nf3IRicJplxTyoNTbcJ-eUv_LU/rs:fit/g:sm/q:90/h:500/w:500/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI4NjE0/MTk2LTE2OTc3NDc0/NDYtODY2NC5wbmc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue",
+              "Remastered",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "50th Anniversary, 180 Gram, Gatefold"
+          }
+        ],
+        "id": 28614196,
+        "master_id": 10362,
+        "styles": [
+          "Prog Rock",
+          "Art Rock"
+        ],
+        "title": "The Dark Side Of The Moon",
+        "year": 2023
+      },
+      "id": 28614196,
+      "instance_id": 2155255165
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "Waylon",
+            "id": 263206,
+            "join": "",
+            "name": "Waylon Jennings",
+            "resource_url": "https://api.discogs.com/artists/263206",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/9oBPFEe9VeV-Ld6l0YvdSBNtRmz8KCFjK_Na6wUzjG0/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE2MjYz/NTktMTM2MzMwNjIw/Ny0xNjc0LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Compilation"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Indianapolis Pressing, Randy's Roost Both Sides"
+          }
+        ],
+        "id": 1626359,
+        "master_id": 367076,
+        "styles": [
+          "Country"
+        ],
+        "title": "Greatest Hits",
+        "year": 1979
+      },
+      "id": 1626359,
+      "instance_id": 2160447153
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 292545,
+            "join": "",
+            "name": "Glenn Yarbrough",
+            "resource_url": "https://api.discogs.com/artists/292545",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/JQT3-l7qWNDUZ13xO6SXFT0FituRfdWkQVakj9yRfr0/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE0NzI0/NDMwLTE1ODAzNjE5/MzItMzg3MC5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Hollywood Pressing"
+          }
+        ],
+        "id": 14724430,
+        "master_id": 611206,
+        "styles": [
+          "Country",
+          "Folk"
+        ],
+        "title": "Time To Move On",
+        "year": 1964
+      },
+      "id": 14724430,
+      "instance_id": 2160404385
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 2482309,
+            "join": "",
+            "name": "Childish Gambino",
+            "resource_url": "https://api.discogs.com/artists/2482309",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/DVXDONay2R1JslizZ_2MyhCCcakqtgHEv8ayz91iJKQ/rs:fit/g:sm/q:90/h:600/w:593/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzNzM4/NzYyLTE3NDcxMzk5/ODEtMTg3MS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "2"
+          }
+        ],
+        "id": 33738762,
+        "master_id": 3546883,
+        "styles": [
+          "Pop Rap",
+          "Rhythm & Blues",
+          "Experimental",
+          "Trap",
+          "Neo Soul",
+          "Psychedelic",
+          "Soundtrack"
+        ],
+        "title": "Bando Stone And The New World",
+        "year": 2025
+      },
+      "id": 33738762,
+      "instance_id": 2124784350
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 5294313,
+            "join": "",
+            "name": "Colter Wall",
+            "resource_url": "https://api.discogs.com/artists/5294313",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/g7PGIEFOrPCPGzhTelXo22eni0FM3b-DoAQAwTW74RI/rs:fit/g:sm/q:90/h:599/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM1NjM4/OTIxLTE3NjMxNTQz/OTUtOTExNS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Opaque Bone"
+          }
+        ],
+        "id": 35638921,
+        "master_id": 4035472,
+        "styles": [
+          "Country",
+          "Honky Tonk"
+        ],
+        "title": "Memories and Empties",
+        "year": 2025
+      },
+      "id": 35638921,
+      "instance_id": 2124727649
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 11213,
+            "join": "",
+            "name": "Wu-Tang Clan",
+            "resource_url": "https://api.discogs.com/artists/11213",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/Hx4qudpuPvgTIqNLi3dtC80YFKB51JJJXewFI_kgicE/rs:fit/g:sm/q:90/h:595/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIzNjM4/NTc3LTE2NTU3NDQ4/OTYtNTU5OC5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          }
+        ],
+        "id": 23638577,
+        "master_id": 25303,
+        "styles": [
+          "Boom Bap",
+          "Hardcore Hip-Hop"
+        ],
+        "title": "Enter The Wu-Tang (36 Chambers)",
+        "year": 2022
+      },
+      "id": 23638577,
+      "instance_id": 2135400363
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 39776,
+            "join": "",
+            "name": "Dolly Parton",
+            "resource_url": "https://api.discogs.com/artists/39776",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/uP_k2Vp0PSJNdSdzbcpO9Pd4rhxaVEOWnDmAkuxAjJg/rs:fit/g:sm/q:90/h:594/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE0MDI5/ODYyLTE1NjY1MjMw/OTMtMzAwNS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          }
+        ],
+        "id": 14029862,
+        "master_id": 233097,
+        "styles": [
+          "Country"
+        ],
+        "title": "Jolene",
+        "year": 2019
+      },
+      "id": 14029862,
+      "instance_id": 2160395285
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 17827,
+            "join": "",
+            "name": "Eric Clapton",
+            "resource_url": "https://api.discogs.com/artists/17827",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/Esho8SQze5gIT2YlVaUW2e9npeZ95fEawkuKZpl6YBQ/rs:fit/g:sm/q:90/h:600/w:281/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE3NzUz/MjM5LTE2MTUyMjg0/OTAtMjA0MS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "Album"
+            ],
+            "name": "CD",
+            "qty": "1",
+            "text": "Longbox"
+          }
+        ],
+        "id": 17753239,
+        "master_id": 85294,
+        "styles": [
+          "Blues Rock",
+          "Acoustic"
+        ],
+        "title": "Unplugged",
+        "year": 1992
+      },
+      "id": 17753239,
+      "instance_id": 2155265477
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 306305,
+            "join": "",
+            "name": "Gordon Lightfoot",
+            "resource_url": "https://api.discogs.com/artists/306305",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/EylQ6Lq4penficm3a7pOkE5vi4pndnkZvUsv5MBi-rE/rs:fit/g:sm/q:90/h:600/w:590/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEyMDIz/Mzk0LTE1NDgyMTg4/OTktOTI5Ni5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Santa Maria Pressing"
+          }
+        ],
+        "id": 12023394,
+        "master_id": 143692,
+        "styles": [
+          "Folk Rock",
+          "Acoustic"
+        ],
+        "title": "Sundown",
+        "year": 1974
+      },
+      "id": 12023394,
+      "instance_id": 2160409042
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 8063621,
+            "join": "",
+            "name": "Kaitlin Butts",
+            "resource_url": "https://api.discogs.com/artists/8063621",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/-Nr6jRV8DpYVGoUgzmuYwrp-ZYKQXDqgbOLby0eRiSI/rs:fit/g:sm/q:90/h:600/w:593/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM3MTA5/Mjg5LTE3NzY1NTM4/MjYtOTc2Ny5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Record Store Day",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          }
+        ],
+        "id": 37109289,
+        "master_id": 0,
+        "styles": [
+          "Country"
+        ],
+        "title": "Yeehaw Sessions ",
+        "year": 2026
+      },
+      "id": 37109289,
+      "instance_id": 2153667011
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 83080,
+            "join": "",
+            "name": "The Smiths",
+            "resource_url": "https://api.discogs.com/artists/83080",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/Lx_Cuf5oZasWbfD4-P0bv7CWf0QQ9qWup_9gqKJ6HHo/rs:fit/g:sm/q:90/h:593/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM3MTU3/NTQtMTU3MzUzMjc5/Ni03OTc1LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Compilation",
+              "Reissue"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "180 Gram"
+          }
+        ],
+        "id": 3715754,
+        "master_id": 20048,
+        "styles": [
+          "Indie Rock",
+          "Jangle Pop"
+        ],
+        "title": "Hatful Of Hollow",
+        "year": 2012
+      },
+      "id": 3715754,
+      "instance_id": 2156812572
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 194,
+            "join": "",
+            "name": "Various",
+            "resource_url": "https://api.discogs.com/artists/194",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/pK8CeSagkLdd24JzeKehLJB3NJf8IIPE7rGaeD99IHo/rs:fit/g:sm/q:90/h:600/w:595/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ1MTQy/Ni0xNjQ3NzU0MTIz/LTgxMzAuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Compilation",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "2"
+          }
+        ],
+        "id": 451426,
+        "master_id": 23443,
+        "styles": [
+          "Soundtrack",
+          "Disco"
+        ],
+        "title": "Saturday Night Fever (The Original Movie Sound Track)",
+        "year": 1977
+      },
+      "id": 451426,
+      "instance_id": 2157500611
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 779522,
+            "join": "",
+            "name": "Jeremy Soule",
+            "resource_url": "https://api.discogs.com/artists/779522",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/ZVTONBVpGFExTKC0WLs9NFpZzJvNsftOGDPx83YbAR4/rs:fit/g:sm/q:90/h:596/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0MTU4/MTM2LTE3NDg4OTQ2/NDYtMTYwNS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP"
+            ],
+            "name": "Vinyl",
+            "qty": "4",
+            "text": "Clear & Black w Blue Splatter [Blackreach Cavern]"
+          },
+          {
+            "descriptions": [
+              "Album",
+              "Deluxe Edition",
+              "Limited Edition",
+              "Reissue",
+              "Remastered",
+              "Stereo"
+            ],
+            "name": "Box Set",
+            "qty": "1",
+            "text": "Ultimate Edition"
+          }
+        ],
+        "id": 34158136,
+        "master_id": 792913,
+        "styles": [
+          "Soundtrack",
+          "Modern",
+          "Score",
+          "Video Game Music"
+        ],
+        "title": "The Elder Scrolls V: Skyrim",
+        "year": 2025
+      },
+      "id": 34158136,
+      "instance_id": 2148464714
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "\u4e45\u77f3 \u8b72",
+            "id": 221662,
+            "join": "",
+            "name": "Joe Hisaishi",
+            "resource_url": "https://api.discogs.com/artists/221662",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/HC8SsyHKzPIqWv874S7PnaEHUMGlZdS1ABE89x6o8aw/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEyNzY3/NjgzLTE1NDE1NzI5/NDEtMzIxNi5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Record Store Day",
+              "Reissue",
+              "Repress",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          }
+        ],
+        "id": 12767683,
+        "master_id": 291022,
+        "styles": [
+          "Anison",
+          "Score",
+          "Soundtrack"
+        ],
+        "title": "\u3068\u306a\u308a\u306e\u30c8\u30c8\u30ed (\u30a4\u30e1\u30fc\u30b8\u30fb\u30bd\u30f3\u30b0\u96c6)",
+        "year": 2018
+      },
+      "id": 12767683,
+      "instance_id": 2154472364
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "\u4e45\u77f3\u8b72",
+            "id": 221662,
+            "join": "",
+            "name": "Joe Hisaishi",
+            "resource_url": "https://api.discogs.com/artists/221662",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/Z7NOfd_8wZeLLsJn6dUUANBygCZbg1s0Jtsut6YVvyg/rs:fit/g:sm/q:90/h:600/w:595/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE2MTUw/ODY1LTE2MDczNDYy/NjMtMjE1Ni5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          },
+          {
+            "descriptions": [
+              "LP",
+              "Single Sided",
+              "Etched"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          },
+          {
+            "descriptions": [
+              "Album",
+              "Stereo"
+            ],
+            "name": "All Media",
+            "qty": "1",
+            "text": "Gatefold"
+          }
+        ],
+        "id": 16150865,
+        "master_id": 111105,
+        "styles": [
+          "Soundtrack",
+          "Abstract",
+          "Contemporary",
+          "Ambient",
+          "Anison"
+        ],
+        "title": "\u5343\u3068\u5343\u5c0b\u306e\u795e\u96a0\u3057 \u30b5\u30a6\u30f3\u30c9\u30c8\u30e9\u30c3\u30af",
+        "year": 2020
+      },
+      "id": 16150865,
+      "instance_id": 2154477958
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 261941,
+            "join": "",
+            "name": "Bad Company (3)",
+            "resource_url": "https://api.discogs.com/artists/261941",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/QWt8QJ_m9Agx6UE98Pmuw31R2oxyaBmNgEELqePPw-c/rs:fit/g:sm/q:90/h:500/w:500/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM4MDk3/My0xMjU1NDk3OTI4/LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "RI - PRC Richmond Pressing"
+          }
+        ],
+        "id": 380973,
+        "master_id": 37445,
+        "styles": [
+          "Hard Rock",
+          "Blues Rock"
+        ],
+        "title": "Bad Company",
+        "year": 1974
+      },
+      "id": 380973,
+      "instance_id": 2132228833
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 18956,
+            "join": "",
+            "name": "Stevie Wonder",
+            "resource_url": "https://api.discogs.com/artists/18956",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/XJ1D15aRYRqcnF0AV1glNTBspSqxyemBUfgrgLwjIh8/rs:fit/g:sm/q:90/h:600/w:598/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI2NjY1/MC0xNDkxMDEwNTM4/LTcyNzUuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP"
+            ],
+            "name": "Vinyl",
+            "qty": "2",
+            "text": "Terre Haute Pressing"
+          },
+          {
+            "descriptions": [
+              "7\"",
+              "33 \u2153 RPM",
+              "EP"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Plastic Enterprises Pressing"
+          },
+          {
+            "descriptions": [
+              "Album",
+              "Stereo"
+            ],
+            "name": "All Media",
+            "qty": "1",
+            "text": "Gatefold"
+          }
+        ],
+        "id": 266650,
+        "master_id": 87440,
+        "styles": [
+          "Soul",
+          "Funk",
+          "Fusion",
+          "Jazz-Funk"
+        ],
+        "title": "Songs In The Key Of Life",
+        "year": 1976
+      },
+      "id": 266650,
+      "instance_id": 2149817943
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 57103,
+            "join": "",
+            "name": "Elton John",
+            "resource_url": "https://api.discogs.com/artists/57103",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/-SRRKBAtwvgcKBN9zMLS_NMGjS9byOpQ_uv32C3Mqjg/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYwMjU1/NzItMTQxNDQ4ODI4/MS0xNjkxLmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Pinckneyville Pressing, Gatefold"
+          }
+        ],
+        "id": 6025572,
+        "master_id": 84216,
+        "styles": [
+          "Pop Rock"
+        ],
+        "title": "Tumbleweed Connection",
+        "year": 1971
+      },
+      "id": 6025572,
+      "instance_id": 2160414878
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 112154,
+            "join": "",
+            "name": "Electric Light Orchestra",
+            "resource_url": "https://api.discogs.com/artists/112154",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/L2UpRMy-kjSbGlIxOy83M0tAkQSE8Ut8tT0SuJMn8Ow/rs:fit/g:sm/q:90/h:469/w:470/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ0ODg0/MS0xMTQ4MzI3Mjgy/LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Research Craft Pressing"
+          }
+        ],
+        "id": 448841,
+        "master_id": 21693,
+        "styles": [
+          "Pop Rock",
+          "Classic Rock"
+        ],
+        "title": "Face The Music",
+        "year": 1975
+      },
+      "id": 448841,
+      "instance_id": 2124783047
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 160904,
+            "join": "",
+            "name": "Seals & Crofts",
+            "resource_url": "https://api.discogs.com/artists/160904",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/RBwf0MtZQpNqOroZOJtfYCXoyHJmzbXIHfHTqXlmspk/rs:fit/g:sm/q:90/h:600/w:598/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTU3Mzk3/My0xNjEyNTUxNDEw/LTU0NDMuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Santa Maria Press, Green Labels, Gatefold"
+          }
+        ],
+        "id": 573973,
+        "master_id": 119766,
+        "styles": [
+          "Soft Rock",
+          "Folk Rock"
+        ],
+        "title": "Summer Breeze",
+        "year": 1972
+      },
+      "id": 573973,
+      "instance_id": 2160401510
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 37223,
+            "join": "",
+            "name": "The Doobie Brothers",
+            "resource_url": "https://api.discogs.com/artists/37223",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/iqrvf7pO5Tn7PRijPZwrW_yFZqdHbUgh_3t5jB-n6tY/rs:fit/g:sm/q:90/h:578/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk3OTg5/MjAtMTU5MTczNjgy/My0yNTMwLmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Compilation"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Terre Haute Pressing"
+          }
+        ],
+        "id": 9798920,
+        "master_id": 95290,
+        "styles": [
+          "Pop Rock"
+        ],
+        "title": "Best Of The Doobies",
+        "year": 1976
+      },
+      "id": 9798920,
+      "instance_id": 2160451448
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 262944,
+            "join": "",
+            "name": "James Taylor (2)",
+            "resource_url": "https://api.discogs.com/artists/262944",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/cBmr3iBBGLsihl_lk0R7xKUxC-_CYk4zuA67QiXVmhE/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0MTk4/MDctMTQ2NjYwNTM4/Ni0zODM5LmpwZWc.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Compilation"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Los Angeles Pressing, Gatefold"
+          }
+        ],
+        "id": 3419807,
+        "master_id": 68256,
+        "styles": [
+          "Folk Rock",
+          "Pop Rock"
+        ],
+        "title": "James Taylor's Greatest Hits",
+        "year": 1976
+      },
+      "id": 3419807,
+      "instance_id": 2157510505
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 103687,
+            "join": "",
+            "name": "Dire Straits",
+            "resource_url": "https://api.discogs.com/artists/103687",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/fWEj_og1fkDTPXFBpfkKX37OYsc7IYL03ThS00rCClw/rs:fit/g:sm/q:90/h:600/w:596/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYyMTEx/MC0xMzg4MjEzMjk0/LTU1MzEuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Winchester Pressing"
+          }
+        ],
+        "id": 621110,
+        "master_id": 23759,
+        "styles": [
+          "AOR",
+          "Rock & Roll"
+        ],
+        "title": "Dire Straits",
+        "year": 1978
+      },
+      "id": 621110,
+      "instance_id": 2157367094
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 94066,
+            "join": "",
+            "name": "Van Halen",
+            "resource_url": "https://api.discogs.com/artists/94066",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/BfFW7IRvYG92BL53TY2n-30-FBqmrkqHfjl0zGtGhrU/rs:fit/g:sm/q:90/h:600/w:585/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk0OTg0/My0xNTQ1Mzg3MTM0/LTExMjcuanBlZw.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1",
+            "text": "Winchester Pressing"
+          }
+        ],
+        "id": 949843,
+        "master_id": 29419,
+        "styles": [
+          "Hard Rock"
+        ],
+        "title": "1984",
+        "year": 1984
+      },
+      "id": 949843,
+      "instance_id": 2160445605
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 67156,
+            "join": "",
+            "name": "The Flaming Lips",
+            "resource_url": "https://api.discogs.com/artists/67156",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/6qV22-0vdOqyrZ5fLvLQEBIhpUSu124iTEMUalis0MA/rs:fit/g:sm/q:90/h:595/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMwNTUx/NzczLTE3MjA5MDYy/NDktMzc0OC5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Remastered",
+              "Reissue"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          }
+        ],
+        "id": 30551773,
+        "master_id": 114267,
+        "styles": [
+          "Experimental",
+          "Synth-pop",
+          "Indie Rock"
+        ],
+        "title": "Yoshimi Battles The Pink Robots",
+        "year": 2023
+      },
+      "id": 30551773,
+      "instance_id": 2155255162
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 6871068,
+            "join": "",
+            "name": "Orville Peck",
+            "resource_url": "https://api.discogs.com/artists/6871068",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/GFyRMwE2gn4o6VZV3kbcvwBhs1TQG_3ZlsH22QGphBg/rs:fit/g:sm/q:90/h:593/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMxMzkz/OTMxLTE3NjQyODA3/NzYtMTIxMC5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Limited Edition"
+            ],
+            "name": "Vinyl",
+            "qty": "2",
+            "text": "Pink [Baby Pink]"
+          }
+        ],
+        "id": 31393931,
+        "master_id": 3559259,
+        "styles": [
+          "Country"
+        ],
+        "title": "Stampede",
+        "year": 2024
+      },
+      "id": 31393931,
+      "instance_id": 2164850999
+    },
+    {
+      "basic_information": {
+        "artists": [
+          {
+            "anv": "",
+            "id": 47333,
+            "join": "",
+            "name": "Fleetwood Mac",
+            "resource_url": "https://api.discogs.com/artists/47333",
+            "role": "",
+            "tracks": ""
+          }
+        ],
+        "cover_image": "https://i.discogs.com/sCG8DhZBOoeqOn6NwwCrPaEv7I9YSyaEN9T1ryx37KI/rs:fit/g:sm/q:90/h:594/w:594/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM2MDE2/MTU5LTE3NjczNzQx/ODYtNjUxOS5qcGVn.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Reissue",
+              "Stereo"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          }
+        ],
+        "id": 36016159,
+        "master_id": 38722,
+        "styles": [
+          "Classic Rock"
+        ],
+        "title": "Rumours",
+        "year": 0
+      },
+      "id": 36016159,
+      "instance_id": 2153670576
+    },
+    {
+      "_synthetic": "Hand-added: no Vinyl+CD item exists in the live collection, and the any(format == 'Vinyl') rule is untested without one.",
+      "basic_information": {
+        "artists": [
+          {
+            "id": 9000003,
+            "name": "Synthetic Test Artist"
+          }
+        ],
+        "cover_image": "https://i.discogs.com/synthetic-lp-cd/cover.jpeg",
+        "formats": [
+          {
+            "descriptions": [
+              "LP",
+              "Album",
+              "Deluxe Edition"
+            ],
+            "name": "Vinyl",
+            "qty": "1"
+          },
+          {
+            "descriptions": [
+              "Album"
+            ],
+            "name": "CD",
+            "qty": "1"
+          }
+        ],
+        "id": 9000001,
+        "master_id": 9000002,
+        "styles": [
+          "Post-Punk",
+          "Indie Rock"
+        ],
+        "title": "Deluxe Edition (LP + CD)",
+        "year": 2019
+      },
+      "id": 9000001,
+      "instance_id": 9000000001
+    }
+  ]
+}
